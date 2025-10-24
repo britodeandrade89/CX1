@@ -7,6 +7,7 @@ import { PlusIcon } from './icons/PlusIcon';
 import { Modal } from './Modal';
 import { PencilIcon } from './icons/PencilIcon';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
+import { XIcon } from './icons/XIcon.tsx';
 
 // Props
 interface TournamentViewProps {
@@ -323,10 +324,30 @@ const GroupStage: React.FC<{ tournament: Tournament, setTournament: React.Dispat
 };
 
 export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
-    const [tournament, setTournament] = useState<Tournament | null>(null);
+    const [tournament, setTournament] = useState<Tournament | null>(() => {
+        try {
+            const saved = localStorage.getItem('tournament');
+            return saved ? JSON.parse(saved) : null;
+        } catch (e) {
+            console.error("Failed to load tournament data from localStorage", e);
+            return null;
+        }
+    });
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isEditingRules, setIsEditingRules] = useState(false);
     const [rulesText, setRulesText] = useState('');
+
+    useEffect(() => {
+        try {
+            if (tournament) {
+                localStorage.setItem('tournament', JSON.stringify(tournament));
+            } else {
+                localStorage.removeItem('tournament');
+            }
+        } catch (e) {
+            console.error("Failed to save tournament data to localStorage", e);
+        }
+    }, [tournament]);
 
     useEffect(() => {
         if (tournament) {
@@ -391,6 +412,12 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
         setIsEditingRules(false);
     };
 
+    const handleResetTournament = () => {
+        if (window.confirm("Tem certeza de que deseja apagar o torneio atual e começar um novo? Todo o progresso será perdido.")) {
+            setTournament(null);
+        }
+    };
+
     if (!tournament) {
         return (
             <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full max-w-2xl">
@@ -410,13 +437,22 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
                         <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-on-dark)]">{tournament.name}</h1>
                     </div>
                 </div>
-                <button 
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)]/80 rounded-lg hover:bg-[var(--btn-primary-bg)] transition-colors"
-                >
-                    <PencilIcon className="w-5 h-5" />
-                    Editar Jogadores
-                </button>
+                <div className="flex items-center gap-2">
+                    <button 
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)]/80 rounded-lg hover:bg-[var(--btn-primary-bg)] transition-colors"
+                    >
+                        <PencilIcon className="w-5 h-5" />
+                        Editar Jogadores
+                    </button>
+                    <button 
+                        onClick={handleResetTournament}
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-300 bg-red-500/20 rounded-lg hover:bg-red-500/40 transition-colors"
+                    >
+                        <XIcon className="w-5 h-5" />
+                        Novo Torneio
+                    </button>
+                </div>
             </div>
 
             <div className="mb-8 p-6 bg-white/5 rounded-lg border border-[var(--border-color)]">

@@ -22,13 +22,49 @@ const App: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [expandedMenu, setExpandedMenu] = useState<string | null>('classes');
 
-    // Data state
-    const [classData, setClassData] = useState<ClassDataMap>(initialClassData);
-    const [classificationData, setClassificationData] = useState<ClassificationDataMap>(initialClassificationData);
+    // Data state with localStorage persistence
+    const [classData, setClassData] = useState<ClassDataMap>(() => {
+        try {
+            const saved = localStorage.getItem('classData');
+            return saved ? JSON.parse(saved) : initialClassData;
+        } catch (e) {
+            console.error("Failed to load class data from localStorage", e);
+            return initialClassData;
+        }
+    });
+
+    const [classificationData, setClassificationData] = useState<ClassificationDataMap>(() => {
+        try {
+            const saved = localStorage.getItem('classificationData');
+            return saved ? JSON.parse(saved) : initialClassificationData;
+        } catch (e) {
+            console.error("Failed to load classification data from localStorage", e);
+            return initialClassificationData;
+        }
+    });
 
     useEffect(() => {
         localStorage.setItem('isAuthenticated', String(isAuthenticated));
     }, [isAuthenticated]);
+
+    // Save class data to localStorage whenever it changes
+    useEffect(() => {
+        try {
+            localStorage.setItem('classData', JSON.stringify(classData));
+        } catch (e) {
+            console.error("Failed to save class data to localStorage", e);
+        }
+    }, [classData]);
+
+    // Save classification data to localStorage whenever it changes
+    useEffect(() => {
+        try {
+            localStorage.setItem('classificationData', JSON.stringify(classificationData));
+        } catch (e) {
+            console.error("Failed to save classification data to localStorage", e);
+        }
+    }, [classificationData]);
+
 
     const handleLogin = () => setIsAuthenticated(true);
     const handleLogout = () => {
