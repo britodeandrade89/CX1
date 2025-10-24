@@ -11,6 +11,8 @@ import { AlgebraicNotationView } from './components/AlgebraicNotationView.tsx';
 import { TournamentView } from './components/TournamentView.tsx';
 import { initialClassData, initialClassificationData } from './constants.ts';
 import type { ClassDataMap, ClassificationDataMap } from './types.ts';
+import { ClassListView } from './components/ClassListView.tsx';
+import { ClassificationListView } from './components/ClassificationListView.tsx';
 
 const App: React.FC = () => {
     // State management
@@ -175,7 +177,11 @@ const App: React.FC = () => {
                                 onUpdate={handleAttendanceUpdate} 
                             />;
                 }
-                return <WelcomeScreen />;
+                return <ClassListView 
+                            classDataMap={classData}
+                            onSelectClass={(classId) => handleViewChange('classes', classId)}
+                            onBack={() => handleViewChange('main-menu')}
+                        />;
             case 'classification':
                 if (activeClassId && classificationData[activeClassId]) {
                     return <ClassificationView 
@@ -185,7 +191,11 @@ const App: React.FC = () => {
                                 onUpdate={handleClassificationUpdate}
                             />;
                 }
-                return <WelcomeScreen />;
+                return <ClassificationListView 
+                            classificationDataMap={classificationData}
+                            onSelectClassification={(classId) => handleViewChange('classification', classId)}
+                            onBack={() => handleViewChange('main-menu')}
+                        />;
             case 'notation':
                 return <AlgebraicNotationView onBack={() => handleViewChange('main-menu')} />;
             case 'tournament':
