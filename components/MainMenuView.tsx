@@ -2,6 +2,7 @@ import React from 'react';
 import { UsersIcon } from './icons/UsersIcon.tsx';
 import { ChartBarIcon } from './icons/ChartBarIcon.tsx';
 import { BookOpenIcon } from './icons/BookOpenIcon.tsx';
+import { TrophyIcon } from './icons/TrophyIcon.tsx';
 
 interface MainMenuViewProps {
     onMenuAction: (menu: string) => void;
@@ -26,7 +27,7 @@ export const MainMenuView: React.FC<MainMenuViewProps> = ({ onMenuAction }) => {
             <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-12 md:mb-16 uppercase tracking-wider" style={{ textShadow: '0 0 10px var(--glow-color), 0 0 20px var(--glow-color)'}}>
                 CLUBE DO XADREZ
             </h1>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-5xl">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8 w-full max-w-5xl">
                 <MenuCard 
                     icon={<UsersIcon className="w-16 h-16"/>}
                     title="Turmas"
@@ -36,6 +37,11 @@ export const MainMenuView: React.FC<MainMenuViewProps> = ({ onMenuAction }) => {
                     icon={<ChartBarIcon className="w-16 h-16"/>}
                     title="Classificações"
                     onClick={() => onMenuAction('classification')}
+                />
+                 <MenuCard 
+                    icon={<TrophyIcon className="w-16 h-16"/>}
+                    title="Torneio"
+                    onClick={() => onMenuAction('tournament')}
                 />
                 <MenuCard 
                     icon={<BookOpenIcon className="w-16 h-16"/>}

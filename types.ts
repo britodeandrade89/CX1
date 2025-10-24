@@ -34,9 +34,20 @@ export interface ClassificationDataMap {
     [key: string]: ClassificationData;
 }
 
-// FIX: Add missing types for Tournament feature.
-// These types were missing, causing import errors in `components/TournamentView.tsx` and `utils/tournamentLogic.ts`.
+
+// --- FIX: Replaced old tournament types with new, consistent types ---
+// The new components (`components/TournamentView.tsx`, `utils/tournamentLogic.ts`) use a different data structure for tournaments,
+// matches, and players than the old `App.tsx`. The original types caused conflicts. These new types align with the modern implementation,
+// fixing property-not-found errors, type mismatches (e.g., MatchResult values), and incorrect data structures (e.g., `groups` is now an array).
+
 export type MatchResult = 'P1_WIN' | 'P2_WIN' | 'DRAW' | null;
+
+export interface Match {
+    round: number;
+    player1: string;
+    player2: string;
+    result: MatchResult;
+}
 
 export interface PlayerStats {
     name: string;
@@ -45,13 +56,7 @@ export interface PlayerStats {
     draws: number;
     losses: number;
     gamesPlayed: number;
-}
-
-export interface Match {
-    round: number;
-    player1: string;
-    player2: string;
-    result: MatchResult;
+    rankChange?: 'up' | 'down' | 'same' | null;
 }
 
 export interface Group {
@@ -64,7 +69,7 @@ export interface Tournament {
     name: string;
     players: string[];
     groups: Group[];
-    phase: 'group' | 'knockout';
+    phase: 'group' | 'final' | 'finished';
     finalists: PlayerStats[];
     finalSchedule: Match[];
     champion: string | null;
