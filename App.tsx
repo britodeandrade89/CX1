@@ -8,7 +8,6 @@ import { WelcomeScreen } from './components/WelcomeScreen.tsx';
 import { ClassView } from './components/ClassView.tsx';
 import { ClassificationView } from './components/ClassificationView.tsx';
 import { AlgebraicNotationView } from './components/AlgebraicNotationView.tsx';
-import { TournamentView } from './components/TournamentView.tsx';
 import { initialClassData, initialClassificationData } from './constants.ts';
 import type { ClassDataMap, ClassificationDataMap } from './types.ts';
 
@@ -188,8 +187,6 @@ const App: React.FC = () => {
                 return <WelcomeScreen />;
             case 'notation':
                 return <AlgebraicNotationView onBack={() => handleViewChange('main-menu')} />;
-            case 'tournament':
-                 return <TournamentView onBack={() => handleViewChange('main-menu')} />;
             default:
                 return <WelcomeScreen />;
         }
