@@ -3,6 +3,8 @@ import { ClassData, Student } from '../types.ts';
 import { BackButton } from './BackButton.tsx';
 import { UsersIcon } from './icons/UsersIcon.tsx';
 import { CalendarIcon } from './icons/CalendarIcon.tsx';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+
 
 interface ClassViewProps {
     classId: string;
@@ -49,23 +51,75 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
 
     if (!classData) {
         return (
-            <div className="p-6 bg-[var(--content-bg)] backdrop-blur-sm rounded-lg shadow-lg">
+            <div className="p-6 bg-[var(--content-bg)] backdrop-blur-sm rounded-lg shadow-lg w-full">
                 <BackButton onClick={onBack} />
                 <p>Nenhuma turma selecionada.</p>
             </div>
         );
     }
+
+    if (!classData.students || classData.students.length === 0) {
+        return (
+            <div className="p-6 bg-[var(--content-bg)] backdrop-blur-sm rounded-lg shadow-lg w-full">
+                <BackButton onClick={onBack} />
+                <h1 className="text-3xl font-bold text-[var(--text-on-dark)]">{classData.name}</h1>
+                <p className="mt-4 text-[var(--text-secondary)]">Não há alunos nesta turma para exibir dados.</p>
+            </div>
+        );
+    }
+
+    const totalPercentage = classData.students.reduce((sum, student) => {
+        return sum + getAttendancePercentage(student).percentage;
+    }, 0);
+    const averageAttendance = Math.round(totalPercentage / classData.students.length);
+
+    const chartData = [
+        { name: 'Aproveitamento Médio', aproveitamento: averageAttendance }
+    ];
+
+    const getBarColor = (percentage: number) => {
+        if (percentage >= 75) return '#4ade80'; // var(--status-win)
+        if (percentage >= 50) return '#facc15'; // var(--accent-color)
+        return '#f87171'; // var(--status-loss)
+    };
     
     const sortedStudents = [...classData.students].sort((a, b) => a.name.localeCompare(b.name));
     const lastDate = classData.dates[classData.dates.length - 1];
 
 
     return (
-        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)]">
+        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full">
             <BackButton onClick={onBack} />
             <div className="flex items-center mb-6">
                  <UsersIcon className="h-8 w-8 mr-3 text-[var(--accent-color)]" />
                  <h1 className="text-3xl font-bold text-[var(--text-on-dark)]">{classData.name}</h1>
+            </div>
+
+            <div className="mb-8 p-4 bg-white/5 rounded-lg border border-[var(--border-color)]">
+                <h2 className="text-xl font-bold text-[var(--text-on-dark)] mb-4">Resumo da Turma</h2>
+                <div style={{ width: '100%', height: 150 }}>
+                    <ResponsiveContainer>
+                        <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                            <XAxis type="number" domain={[0, 100]} stroke="#a8a29e" tickFormatter={(tick) => `${tick}%`} />
+                            <YAxis type="category" dataKey="name" stroke="#a8a29e" width={150} tick={{ fill: '#e7e5e4' }} />
+                            <Tooltip
+                                cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
+                                contentStyle={{
+                                    background: 'rgba(28, 25, 23, 0.9)',
+                                    borderColor: 'var(--border-color)',
+                                    color: 'var(--text-on-light)'
+                                }}
+                                labelStyle={{ color: 'var(--text-secondary)' }}
+                                formatter={(value: number) => [`${value}%`, "Aproveitamento"]}
+                            />
+                            <Bar dataKey="aproveitamento" barSize={30}>
+                                {chartData.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={getBarColor(entry.aproveitamento)} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
             </div>
             
             <div className="flex items-center text-sm text-[var(--text-secondary)] mb-6">

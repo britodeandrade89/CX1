@@ -1,7 +1,7 @@
 {
   "short_name": "Xadrez",
-  "name": "TORNEIOS DE XADREZ",
-  "description": "Uma aplicação moderna para criar e gerenciar torneios de xadrez.",
+  "name": "CLUBE DO XADREZ",
+  "description": "Um aplicativo para gerenciamento pessoal com análise de IA da Gemini.",
   "icons": [
     {
       "src": "/icon-192x192.svg",

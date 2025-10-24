@@ -1,56 +1,89 @@
-// import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 
-// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
-// async function callGemini(prompt: string, systemInstruction?: string): Promise<string> {
-//     try {
-//         const response = await ai.models.generateContent({
-//             model: 'gemini-2.5-flash',
-//             contents: prompt,
-//             config: systemInstruction ? { systemInstruction } : undefined,
-//         });
-//         return response.text;
-//     } catch (error) {
-//         console.error("Error calling Gemini API:", error);
-//         return "Desculpe, não foi possível obter uma resposta da IA no momento.";
-//     }
-// }
+/**
+ * Analyzes a chess game provided in algebraic notation using the Gemini API.
+ * @param gameNotation A string containing the chess game's moves.
+ * @returns A promise that resolves to an HTML string with the AI's analysis.
+ */
+export const analyzeChessGame = async (gameNotation: string): Promise<string> => {
+    const systemInstruction = `
+        Aja como um técnico de xadrez de classe mundial, amigável e didático. Sua tarefa é analisar uma partida de xadrez fornecida em notação algébrica (PGN).
+        Sua resposta deve ser em português do Brasil.
+        - Forneça uma análise geral da partida no início.
+        - Destaque 2 a 3 lances-chave (tanto bons quanto ruins) de cada jogador.
+        - Para cada lance-chave, explique por que foi bom ou um erro.
+        - Sugira lances alternativos melhores para os erros.
+        - Conclua com um resumo e um conselho construtivo para ambos os jogadores.
+        - Formate a resposta usando Markdown. Use **negrito** para destacar os lances (ex: **e4**) e use listas para clareza. Não use cabeçalhos de markdown (#, ##).
+    `;
+    const prompt = `Analise a seguinte partida de xadrez:\n\n${gameNotation}`;
 
-export const analyzePlayer = async (name: string, wins: number, draws: number, losses: number): Promise<string> => {
-    // const systemInstruction = `Aja como um técnico de xadrez amigável e experiente. Responda em português do Brasil. Formate a resposta em parágrafos simples.`;
-    // const prompt = `Forneça uma análise curta (máximo de 80 palavras) e encorajadora para um jovem jogador de xadrez chamado ${name} com o seguinte histórico: ${wins} vitórias, ${draws} empates, e ${losses} derrotas. Ofereça um elogio baseado nos dados (se houver mais vitórias que derrotas, elogie isso; se houver muitos empates, elogie a resiliência) e uma dica simples e prática para melhorar.`;
-    
-    // const response = await callGemini(prompt, systemInstruction);
-    // return response.replace(/\n/g, '<br>');
-    return "A análise da IA está temporariamente desativada. Tente novamente mais tarde.";
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { systemInstruction },
+        });
+
+        // Basic Markdown to HTML conversion for display
+        let htmlResponse = response.text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br />');
+
+        return htmlResponse;
+    } catch (error) {
+        console.error("Error calling Gemini API for chess analysis:", error);
+        return "Desculpe, não foi possível obter uma análise da IA no momento. Verifique a notação e tente novamente.";
+    }
 };
 
-export const generateTournamentNames = async (): Promise<string[]> => {
-    // const systemInstruction = `Aja como um assistente criativo para um clube de xadrez escolar. Sua tarefa é gerar nomes empolgantes e apropriados para torneios de xadrez. Responda em português do Brasil.`;
-    // const prompt = `Gere 5 nomes criativos e épicos para um torneio de xadrez escolar.`;
+// FIX: Added the missing analyzePlayer function.
+// This function was being imported and used in `ClassificationView.tsx` but was not defined, causing a build error.
+/**
+ * Analyzes a chess player's performance based on their stats using the Gemini API.
+ * @param playerName The name of the player.
+ * @param wins The number of wins.
+ * @param draws The number of draws.
+ * @param losses The number of losses.
+ * @returns A promise that resolves to an HTML string with the AI's analysis.
+ */
+export const analyzePlayer = async (playerName: string, wins: number, draws: number, losses: number): Promise<string> => {
+    const systemInstruction = `
+        Aja como um técnico de xadrez experiente e encorajador. Sua tarefa é analisar o desempenho de um jogador com base em suas estatísticas de vitórias, empates e derrotas.
+        Sua resposta deve ser em português do Brasil.
+        - Comece com uma saudação e um resumo geral do desempenho do jogador.
+        - Analise os pontos fortes com base nas estatísticas (ex: bom número de vitórias pode indicar agressividade ou bom conhecimento tático).
+        - Aponte áreas para melhoria de forma construtiva (ex: um número alto de empates pode sugerir dificuldade em converter vantagens; derrotas podem indicar a necessidade de estudar aberturas ou finais).
+        - Dê 2 ou 3 conselhos práticos e acionáveis para o jogador melhorar.
+        - Termine com uma nota de encorajamento.
+        - Formate a resposta usando Markdown. Use **negrito** para destacar pontos importantes e use listas para os conselhos. Não use cabeçalhos de markdown (#, ##).
+    `;
     
-    // try {
-    //     const response = await ai.models.generateContent({
-    //         model: 'gemini-2.5-flash',
-    //         contents: prompt,
-    //         config: {
-    //             systemInstruction,
-    //             responseMimeType: "application/json",
-    //             responseSchema: {
-    //                 type: Type.ARRAY,
-    //                 items: {
-    //                     type: Type.STRING,
-    //                     description: "Um nome de torneio criativo."
-    //                 }
-    //             }
-    //         },
-    //     });
-        
-    //     const jsonString = response.text.trim();
-    //     const result = JSON.parse(jsonString);
-    //     return Array.isArray(result) ? result : [];
-    // } catch (error) {
-    //     console.error("Error calling Gemini API for tournament names:", error);
-        return ["Reis da Escola", "Batalha de Mentes", "Xeque-Mate Supremo", "Gambito do Saber", "Torre Forte"];
-    // }
+    const prompt = `
+        Analise o desempenho do jogador de xadrez: ${playerName}.
+        Estatísticas:
+        - Vitórias: ${wins}
+        - Empates: ${draws}
+        - Derrotas: ${losses}
+    `;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { systemInstruction },
+        });
+
+        // Basic Markdown to HTML conversion for display
+        let htmlResponse = response.text
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br />');
+
+        return htmlResponse;
+    } catch (error) {
+        console.error("Error calling Gemini API for player analysis:", error);
+        return "Desculpe, não foi possível obter uma análise da IA no momento. Tente novamente mais tarde.";
+    }
 };

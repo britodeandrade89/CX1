@@ -1,79 +1,100 @@
-const CACHE_NAME = 'torneios-de-xadrez-v2'; // Version bumped
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/index.tsx',
-  '/App.tsx',
-  '/types.ts',
-  // FIX: Caching the correct data file. `data.ts` is empty, `constants.ts` holds the data.
-  '/constants.ts',
-  '/icon-192x192.svg',
-  '/icon-512x512.svg',
-  '/manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap',
-  'https://fonts.gstatic.com/s/poppins/v21/pxiByp8kv8JHgFVrLBT5Z1xlFQ.woff2'
+// @ts-nocheck
+const CACHE_NAME = 'clube-do-xadrez-v1';
+
+// All assets needed for the app shell to function offline.
+const ASSETS_TO_CACHE = [
+    '/',
+    '/index.html',
+    '/index.tsx',
+    '/App.tsx',
+    '/types.ts',
+    '/constants.ts',
+    '/manifest.json',
+    '/icon-192x192.svg',
+    '/icon-512x512.svg',
+    'https://cdn.tailwindcss.com',
+    'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap',
+    'https://fonts.gstatic.com/s/poppins/v21/pxiByp8kv8JHgFVrLBT5Z1xlFQ.woff2'
 ];
 
-// Install: Cache the app shell
-self.addEventListener('install', event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
-  );
+// 1. Install Service Worker & Pre-cache all critical assets
+self.addEventListener('install', evt => {
+    console.log('[Service Worker] Install event');
+    evt.waitUntil(
+        caches.open(CACHE_NAME)
+            .then(cache => {
+                console.log('[Service Worker] Pre-caching all critical assets.');
+                return cache.addAll(ASSETS_TO_CACHE);
+            })
+            .then(() => {
+                console.log('[Service Worker] All critical assets cached successfully.');
+                return self.skipWaiting();
+            })
+            .catch(error => {
+                console.error('[Service Worker] Failed to cache critical assets:', error);
+            })
+    );
 });
 
-// Activate: Clean up old caches
-self.addEventListener('activate', event => {
-  const cacheWhitelist = [CACHE_NAME];
-  event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-  );
+// 2. Activate Service Worker & Clean up old caches
+self.addEventListener('activate', evt => {
+    console.log('[Service Worker] Activate event');
+    evt.waitUntil(
+        caches.keys().then(keys => {
+            return Promise.all(
+                keys
+                .filter(key => key !== CACHE_NAME)
+                .map(key => {
+                    console.log(`[Service Worker] Deleting old cache: ${key}`);
+                    return caches.delete(key);
+                })
+            );
+        }).then(() => self.clients.claim()) // Ensure the new SW takes control immediately
+    );
 });
 
-// Fetch: Implement Stale-While-Revalidate strategy
-self.addEventListener('fetch', event => {
-    // Ignore non-GET requests
-    if (event.request.method !== 'GET') {
+// 3. Fetch Event: Cache-first, with network fallback and offline shell for navigation
+self.addEventListener('fetch', evt => {
+    // We only handle GET requests
+    if (evt.request.method !== 'GET') {
         return;
     }
 
-    // For navigation requests (HTML), use network-first to ensure latest version
-    if (event.request.mode === 'navigate') {
-        event.respondWith(
-            fetch(event.request).catch(() => caches.match('/index.html'))
-        );
-        return;
-    }
+    evt.respondWith(
+        caches.match(evt.request).then(cachedResponse => {
+            // If we have a cached response, return it.
+            if (cachedResponse) {
+                return cachedResponse;
+            }
 
-    // For other requests (CSS, JS, images), use stale-while-revalidate
-    event.respondWith(
-        caches.open(CACHE_NAME).then(cache => {
-            return cache.match(event.request).then(response => {
-                const fetchPromise = fetch(event.request).then(networkResponse => {
-                    // Check if we received a valid response
+            // If not, fetch from the network.
+            return fetch(evt.request).then(networkResponse => {
+                    // If the fetch is successful, cache the response and return it.
                     if (networkResponse && networkResponse.status === 200) {
-                        cache.put(event.request, networkResponse.clone());
+                        const responseToCache = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(cache => {
+                            cache.put(evt.request, responseToCache);
+                        });
                     }
                     return networkResponse;
-                }).catch(err => {
-                    // Network failed, do nothing, the cached response (if any) is already being returned.
+                })
+                .catch(error => {
+                    console.log('[Service Worker] Network request failed. Serving fallback.', error);
+                    // For navigation requests (i.e., loading a page), if the network fails,
+                    // serve the main index.html from the cache. This prevents 404 errors when offline.
+                    if (evt.request.mode === 'navigate') {
+                        return caches.match('/index.html');
+                    }
                 });
-
-                // Return the cached response immediately, while the network request runs in the background.
-                return response || fetchPromise;
-            });
         })
     );
+});
+
+
+// 4. Sync Event: This remains for future backend integration.
+self.addEventListener('sync', evt => {
+    if (evt.tag === 'sync-data') {
+        console.log('[Service Worker] Background sync event triggered for sync-data.');
+        // The logic to sync with a real backend would go here.
+    }
 });
