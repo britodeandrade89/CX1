@@ -9,8 +9,6 @@ import { ClassView } from './components/ClassView.tsx';
 import { ClassificationView } from './components/ClassificationView.tsx';
 import { AlgebraicNotationView } from './components/AlgebraicNotationView.tsx';
 import { TournamentView } from './components/TournamentView.tsx';
-import { ClassListView } from './components/ClassListView.tsx';
-import { ClassificationListView } from './components/ClassificationListView.tsx';
 import { initialClassData, initialClassificationData } from './constants.ts';
 import type { ClassDataMap, ClassificationDataMap } from './types.ts';
 
@@ -177,7 +175,7 @@ const App: React.FC = () => {
                                 onUpdate={handleAttendanceUpdate} 
                             />;
                 }
-                return <ClassListView classDataMap={classData} onSelectClass={(classId) => handleViewChange('classes', classId)} onBack={() => handleViewChange('main-menu')} />;
+                return <WelcomeScreen />;
             case 'classification':
                 if (activeClassId && classificationData[activeClassId]) {
                     return <ClassificationView 
@@ -187,7 +185,7 @@ const App: React.FC = () => {
                                 onUpdate={handleClassificationUpdate}
                             />;
                 }
-                return <ClassificationListView classificationDataMap={classificationData} onSelectClassification={(classId) => handleViewChange('classification', classId)} onBack={() => handleViewChange('main-menu')} />;
+                return <WelcomeScreen />;
             case 'notation':
                 return <AlgebraicNotationView onBack={() => handleViewChange('main-menu')} />;
             case 'tournament':
