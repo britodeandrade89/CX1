@@ -7,6 +7,7 @@ import { ChevronDownIcon } from './icons/ChevronDownIcon.tsx';
 import { initialClassData } from '../constants.ts';
 import { XIcon } from './icons/XIcon.tsx';
 import { LogoutIcon } from './icons/LogoutIcon.tsx';
+import { TrophyIcon } from './icons/TrophyIcon.tsx';
 
 interface SidebarProps {
     onViewChange: (view: string, classId?: string) => void;
@@ -88,6 +89,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onViewChange, activeItem, isOp
                         ))}
                     </ExpandableNavItem>
                     
+                    <NavItem 
+                        icon={<TrophyIcon className="h-6 w-6" />} 
+                        text="Torneios" 
+                        onClick={() => handleNav('tournament')}
+                        isActive={activeItem === 'tournament'}
+                    />
+
                     <NavItem 
                         icon={<BookOpenIcon className="h-6 w-6" />} 
                         text="Notação Algébrica" 
