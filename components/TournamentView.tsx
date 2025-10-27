@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Tournament, PlayerStats, Match, MatchResult, Group } from '../types';
 import { createTournament, sortPlayers } from '../utils/tournamentLogic';
-import { BackButton } from './BackButton';
-import { TrophyIcon } from './icons/TrophyIcon';
-import { PlusIcon } from './icons/PlusIcon';
-import { Modal } from './Modal';
-import { PencilIcon } from './icons/PencilIcon';
+import { BackButton } from './BackButton.tsx';
+import { TrophyIcon } from './icons/TrophyIcon.tsx';
+import { PlusIcon } from './icons/PlusIcon.tsx';
+import { Modal } from './Modal.tsx';
+import { PencilIcon } from './icons/PencilIcon.tsx';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 import { XIcon } from './icons/XIcon.tsx';
 

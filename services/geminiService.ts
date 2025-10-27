@@ -1,13 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
-
 /**
  * Analyzes a chess game provided in algebraic notation using the Gemini API.
  * @param gameNotation A string containing the chess game's moves.
  * @returns A promise that resolves to an HTML string with the AI's analysis.
  */
 export const analyzeChessGame = async (gameNotation: string): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
     const systemInstruction = `
         Aja como um técnico de xadrez de classe mundial, amigável e didático. Sua tarefa é analisar uma partida de xadrez fornecida em notação algébrica (PGN).
         Sua resposta deve ser em português do Brasil.
@@ -50,6 +49,7 @@ export const analyzeChessGame = async (gameNotation: string): Promise<string> =>
  * @returns A promise that resolves to an HTML string with the AI's analysis.
  */
 export const analyzePlayer = async (playerName: string, wins: number, draws: number, losses: number): Promise<string> => {
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
     const systemInstruction = `
         Aja como um técnico de xadrez experiente e encorajador. Sua tarefa é analisar o desempenho de um jogador com base em suas estatísticas de vitórias, empates e derrotas.
         Sua resposta deve ser em português do Brasil.
