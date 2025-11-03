@@ -13,6 +13,7 @@ import { initialClassData, initialClassificationData } from './constants.ts';
 import type { ClassDataMap, ClassificationDataMap } from './types.ts';
 import { ClassListView } from './components/ClassListView.tsx';
 import { ClassificationListView } from './components/ClassificationListView.tsx';
+import { EmentaView } from './components/EmentaView.tsx';
 
 const App: React.FC = () => {
     // State management
@@ -47,23 +48,27 @@ const App: React.FC = () => {
         localStorage.setItem('isAuthenticated', String(isAuthenticated));
     }, [isAuthenticated]);
 
-    // Save class data to localStorage whenever it changes
-    useEffect(() => {
+    const saveClassData = (): boolean => {
         try {
             localStorage.setItem('classData', JSON.stringify(classData));
+            console.log('Class data saved to localStorage.');
+            return true;
         } catch (e) {
             console.error("Failed to save class data to localStorage", e);
+            return false;
         }
-    }, [classData]);
+    };
 
-    // Save classification data to localStorage whenever it changes
-    useEffect(() => {
+    const saveClassificationData = (): boolean => {
         try {
             localStorage.setItem('classificationData', JSON.stringify(classificationData));
+            console.log('Classification data saved to localStorage.');
+            return true;
         } catch (e) {
             console.error("Failed to save classification data to localStorage", e);
+            return false;
         }
-    }, [classificationData]);
+    };
 
 
     const handleLogin = () => setIsAuthenticated(true);
@@ -175,6 +180,7 @@ const App: React.FC = () => {
                                 classData={classData[activeClassId]} 
                                 onBack={() => handleViewChange('classes')} 
                                 onUpdate={handleAttendanceUpdate} 
+                                onSave={saveClassData}
                             />;
                 }
                 return <ClassListView 
@@ -189,6 +195,7 @@ const App: React.FC = () => {
                                 classificationData={classificationData[activeClassId]} 
                                 onBack={() => handleViewChange('classification')}
                                 onUpdate={handleClassificationUpdate}
+                                onSave={saveClassificationData}
                             />;
                 }
                 return <ClassificationListView
@@ -200,6 +207,8 @@ const App: React.FC = () => {
                 return <AlgebraicNotationView onBack={() => handleViewChange('main-menu')} />;
             case 'tournament':
                 return <TournamentView onBack={() => handleViewChange('main-menu')} />;
+            case 'ementa':
+                return <EmentaView onBack={() => handleViewChange('main-menu')} />;
             default:
                 return <WelcomeScreen />;
         }

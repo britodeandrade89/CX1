@@ -70,3 +70,56 @@ export interface Tournament {
     champion: string | null;
     rules: string[];
 }
+
+// --- Added types for Ementa View ---
+export interface EmentaHeader {
+    government: string;
+    city: string;
+    department: string;
+    school: string;
+    axis: string;
+    professor: string;
+    project: string;
+}
+
+export interface EmentaCourseInfo {
+    name: string;
+    targetAudience: string;
+    prerequisite: string;
+    objective: string;
+}
+
+export interface EmentaTopic {
+    id: string;
+    title: string;
+    observation: string;
+}
+
+export interface EmentaModule {
+    title: string;
+    topics: EmentaTopic[];
+}
+
+export interface EmentaSectionItem {
+    title: string;
+    description: string;
+}
+
+
+export interface EmentaSection {
+    title: string;
+    items: EmentaSectionItem[];
+}
+
+export interface EmentaData {
+    header: EmentaHeader;
+    courseInfo: EmentaCourseInfo;
+    modules: EmentaModule[];
+    methodology: EmentaSection;
+    evaluation: EmentaSection;
+    didacticResources: EmentaSection;
+    finalConsiderations: {
+        title: string;
+        text: string;
+    };
+}

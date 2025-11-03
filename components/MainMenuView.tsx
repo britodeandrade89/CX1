@@ -3,6 +3,7 @@ import { UsersIcon } from './icons/UsersIcon.tsx';
 import { ChartBarIcon } from './icons/ChartBarIcon.tsx';
 import { BookOpenIcon } from './icons/BookOpenIcon.tsx';
 import { TrophyIcon } from './icons/TrophyIcon.tsx';
+import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 
 interface MainMenuViewProps {
     onMenuAction: (menu: string) => void;
@@ -27,27 +28,34 @@ export const MainMenuView: React.FC<MainMenuViewProps> = ({ onMenuAction }) => {
             <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-12 md:mb-16 uppercase tracking-wider" style={{ textShadow: '0 0 10px var(--glow-color), 0 0 20px var(--glow-color)'}}>
                 CLUBE DO XADREZ
             </h1>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 w-full max-w-6xl">
-                <MenuCard 
-                    icon={<UsersIcon className="w-16 h-16"/>}
-                    title="Turmas"
-                    onClick={() => onMenuAction('classes')}
-                />
-                <MenuCard 
-                    icon={<ChartBarIcon className="w-16 h-16"/>}
-                    title="Classificações"
-                    onClick={() => onMenuAction('classification')}
-                />
-                <MenuCard 
-                    icon={<TrophyIcon className="w-16 h-16"/>}
-                    title="Torneios"
-                    onClick={() => onMenuAction('tournament')}
-                />
-                <MenuCard 
-                    icon={<BookOpenIcon className="w-16 h-16"/>}
-                    title="Notação Algébrica"
-                    onClick={() => onMenuAction('notation')}
-                />
+            <div className="w-full flex justify-center px-4">
+                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6 md:gap-8 w-full max-w-6xl">
+                    <MenuCard 
+                        icon={<UsersIcon className="w-16 h-16"/>}
+                        title="Turmas"
+                        onClick={() => onMenuAction('classes')}
+                    />
+                    <MenuCard 
+                        icon={<ChartBarIcon className="w-16 h-16"/>}
+                        title="Classificações"
+                        onClick={() => onMenuAction('classification')}
+                    />
+                    <MenuCard 
+                        icon={<TrophyIcon className="w-16 h-16"/>}
+                        title="Torneios"
+                        onClick={() => onMenuAction('tournament')}
+                    />
+                    <MenuCard 
+                        icon={<BookOpenIcon className="w-16 h-16"/>}
+                        title="Notação Algébrica"
+                        onClick={() => onMenuAction('notation')}
+                    />
+                    <MenuCard 
+                        icon={<DocumentTextIcon className="w-16 h-16"/>}
+                        title="Ementa"
+                        onClick={() => onMenuAction('ementa')}
+                    />
+                </div>
             </div>
         </div>
     );

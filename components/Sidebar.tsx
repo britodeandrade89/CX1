@@ -8,6 +8,7 @@ import { initialClassData } from '../constants.ts';
 import { XIcon } from './icons/XIcon.tsx';
 import { LogoutIcon } from './icons/LogoutIcon.tsx';
 import { TrophyIcon } from './icons/TrophyIcon.tsx';
+import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 
 interface SidebarProps {
     onViewChange: (view: string, classId?: string) => void;
@@ -101,6 +102,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ onViewChange, activeItem, isOp
                         text="Notação Algébrica" 
                         onClick={() => handleNav('notation')}
                         isActive={activeItem === 'notation'}
+                    />
+                    
+                    <NavItem 
+                        icon={<DocumentTextIcon className="h-6 w-6" />} 
+                        text="Ementa" 
+                        onClick={() => handleNav('ementa')}
+                        isActive={activeItem === 'ementa'}
                     />
                 </ul>
             </nav>

@@ -84,6 +84,17 @@ export function createTournament(tournamentName: string, playerNames: string[]):
         }
     }
 
+    const defaultRules = [
+        "Tempo de Jogo: 10 minutos para cada jogador.",
+        "Condições de Vitória: Xeque-mate, tempo do oponente esgotado ou 2 faltas cometidas pelo oponente.",
+        "Limite de Faltas: O acúmulo de 2 faltas resulta em derrota imediata da partida.",
+        "Anotação: A anotação dos lances não é obrigatória.",
+        "Falta - Relógio: Esquecer de acionar o relógio após realizar um lance é considerado falta.",
+        "Falta - Peça Tocada: Tocar em uma peça e não realizar um lance válido com ela é considerado falta (regra peça tocada, peça jogada).",
+        "Sorteio dos Grupos: Os grupos serão definidos por sorteio automatizado no início do torneio.",
+        "Formato: Fase de grupos em sistema de rodízio. O 1º colocado de cada grupo avança para a fase final. O vencedor da fase final é o campeão.",
+    ];
+
     return {
         name: tournamentName,
         players: playerNames,
@@ -92,7 +103,7 @@ export function createTournament(tournamentName: string, playerNames: string[]):
         finalists: [],
         finalSchedule: [],
         champion: null,
-        rules: [],
+        rules: defaultRules,
     };
 }
 

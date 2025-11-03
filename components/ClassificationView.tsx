@@ -5,6 +5,7 @@ import { CrownIcon } from './icons/CrownIcon.tsx';
 import { SparklesIcon } from './icons/SparklesIcon.tsx';
 import { Modal } from './Modal.tsx';
 import { analyzePlayer } from '../services/geminiService.ts';
+import { SaveIcon } from './icons/SaveIcon.tsx';
 
 interface EditableStatProps {
     value: number;
@@ -36,13 +37,27 @@ interface ClassificationViewProps {
     classificationData: ClassificationData;
     onBack: () => void;
     onUpdate: (classId: string, studentIndex: number, newStats: { wins: number; draws: number; losses: number }) => void;
+    onSave: () => boolean;
 }
 
-export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId, classificationData, onBack, onUpdate }) => {
+export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId, classificationData, onBack, onUpdate, onSave }) => {
     const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<ClassificationStudent | null>(null);
     const [analysisResult, setAnalysisResult] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+
+    const handleSave = () => {
+        setSaveStatus('saving');
+        const success = onSave();
+        if (success) {
+            setSaveStatus('saved');
+            setTimeout(() => setSaveStatus('idle'), 2000);
+        } else {
+            setSaveStatus('idle');
+            alert('Falha ao salvar os dados.');
+        }
+    };
 
     const handleOpenAnalysis = async (student: ClassificationStudent) => {
         setSelectedStudent(student);
@@ -93,11 +108,24 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
     };
 
     return (
-        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)]">
-            <BackButton onClick={onBack} />
-            <h1 className="text-3xl font-bold mb-6 text-[var(--text-on-dark)]">{classificationData.name}</h1>
+        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+                 <div className="flex-grow">
+                    <BackButton onClick={onBack} />
+                    <h1 className="text-3xl font-bold text-[var(--text-on-dark)] -mt-6">{classificationData.name}</h1>
+                 </div>
+                <button
+                    onClick={handleSave}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] rounded-lg hover:bg-[var(--btn-primary-hover-bg)] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    disabled={saveStatus !== 'idle'}
+                >
+                    {saveStatus === 'idle' && <><SaveIcon className="w-5 h-5" /> Salvar Alterações</>}
+                    {saveStatus === 'saving' && 'Salvando...'}
+                    {saveStatus === 'saved' && 'Salvo!'}
+                </button>
+            </div>
             
-            <div className="overflow-x-auto hidden md:block">
+            <div className="mt-6 overflow-x-auto hidden md:block">
                 <table className="w-full text-sm text-left text-[var(--text-secondary)]">
                     <thead className="text-xs text-[var(--text-on-dark)] uppercase bg-[var(--table-header-bg)]">
                         <tr>
@@ -156,7 +184,7 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
                 </table>
             </div>
 
-            <div className="block md:hidden space-y-4">
+            <div className="mt-6 block md:hidden space-y-4">
                 {classificationData.students.map((student, index) => (
                     <div key={student.name} className="bg-white/5 border border-[var(--border-color)] rounded-lg p-4 shadow">
                         <div className="flex justify-between items-start mb-3">
