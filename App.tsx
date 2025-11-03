@@ -10,6 +10,7 @@ import { AlgebraicNotationView } from './components/AlgebraicNotationView';
 import { CheckmateExercisesView } from './components/CheckmateExercisesView';
 import { EmentaView } from './components/EmentaView';
 import { ActivityLogView } from './components/ActivityLogView';
+import { PlayGameView } from './components/PlayGameView'; // Import the new view
 import { LoginView } from './components/LoginView';
 import { Background } from './components/Background';
 import { HamburgerIcon } from './components/icons/HamburgerIcon';
@@ -28,7 +29,8 @@ type View =
   | 'algebraic-notation'
   | 'checkmate-exercises'
   | 'ementa'
-  | 'activity-log';
+  | 'activity-log'
+  | 'play-game'; // Add the new view type
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -162,6 +164,8 @@ const App: React.FC = () => {
                 return <EmentaView onBack={() => setView('welcome')} />;
             case 'activity-log':
                 return <ActivityLogView onBack={() => setView('welcome')} activityLogData={activityLog} onUpdate={handleUpdateActivityLog} />;
+            case 'play-game':
+                return <PlayGameView onBack={() => setView('welcome')} />;
             case 'welcome':
             default:
                 return <MainMenuView setView={(v) => setView(v as View)} />;

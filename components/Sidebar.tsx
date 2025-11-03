@@ -7,6 +7,7 @@ import { BookOpenIcon } from './icons/BookOpenIcon.tsx';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 import { ClipboardListIcon } from './icons/ClipboardListIcon.tsx';
 import { KnightIcon } from './icons/KnightIcon.tsx';
+import { ChessIcon } from './icons/ChessIcon.tsx';
 import { LogoutIcon } from './icons/LogoutIcon.tsx';
 import { XIcon } from './icons/XIcon.tsx';
 
@@ -47,6 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, isOpen, onC
                     <NavItem icon={<KnightIcon className="w-full h-full text-current" />} label="Exercícios de Mate" onClick={() => setView('checkmate-exercises')} />
                     <NavItem icon={<DocumentTextIcon className="w-full h-full" />} label="Ementa do Curso" onClick={() => setView('ementa')} />
                     <NavItem icon={<ClipboardListIcon className="w-full h-full text-current" />} label="Registro de Atividades" onClick={() => setView('activity-log')} />
+                    <NavItem icon={<ChessIcon className="w-full h-full" />} label="Jogar" onClick={() => setView('play-game')} />
                 </nav>
 
                 <div className="p-4 border-t border-stone-800">

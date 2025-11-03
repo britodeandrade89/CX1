@@ -6,6 +6,7 @@ import { BookOpenIcon } from './icons/BookOpenIcon.tsx';
 import { KnightIcon } from './icons/KnightIcon.tsx';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 import { ClipboardListIcon } from './icons/ClipboardListIcon.tsx';
+import { ChessIcon } from './icons/ChessIcon.tsx';
 
 interface MainMenuViewProps {
     setView: (view: string) => void;
@@ -64,6 +65,11 @@ export const MainMenuView: React.FC<MainMenuViewProps> = ({ setView }) => {
                     icon={<ClipboardListIcon className="w-8 h-8 text-current" />}
                     title="Registro de Atividades"
                     onClick={() => setView('activity-log')}
+                />
+                 <MenuCard
+                    icon={<ChessIcon className="w-8 h-8" />}
+                    title="Jogar"
+                    onClick={() => setView('play-game')}
                 />
             </div>
         </div>
