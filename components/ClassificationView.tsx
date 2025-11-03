@@ -108,15 +108,15 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
     };
 
     return (
-        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full">
+        <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full">
             <div className="flex flex-wrap items-center justify-between gap-4">
                  <div className="flex-grow">
                     <BackButton onClick={onBack} />
-                    <h1 className="text-3xl font-bold text-[var(--text-on-dark)] -mt-6">{classificationData.name}</h1>
+                    <h1 className="text-3xl font-bold text-stone-100 -mt-6">{classificationData.name}</h1>
                  </div>
                 <button
                     onClick={handleSave}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] rounded-lg hover:bg-[var(--btn-primary-hover-bg)] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                     disabled={saveStatus !== 'idle'}
                 >
                     {saveStatus === 'idle' && <><SaveIcon className="w-5 h-5" /> Salvar Alterações</>}
@@ -126,8 +126,8 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
             </div>
             
             <div className="mt-6 overflow-x-auto hidden md:block">
-                <table className="w-full text-sm text-left text-[var(--text-secondary)]">
-                    <thead className="text-xs text-[var(--text-on-dark)] uppercase bg-[var(--table-header-bg)]">
+                <table className="w-full text-sm text-left text-stone-400">
+                    <thead className="text-xs text-stone-100 uppercase bg-black/20">
                         <tr>
                             <th scope="col" className="px-6 py-3 rounded-l-lg font-semibold">Pos.</th>
                             <th scope="col" className="px-6 py-3 font-semibold">Nome</th>
@@ -140,39 +140,39 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
                     </thead>
                     <tbody>
                         {classificationData.students.map((student, index) => (
-                            <tr key={student.name} className="bg-white/5 border-b border-[var(--border-color)]">
-                                <td scope="row" className="px-6 py-4 font-medium text-[var(--text-on-dark)] whitespace-nowrap">
+                            <tr key={student.name} className="bg-white/5 border-b border-stone-800">
+                                <td scope="row" className="px-6 py-4 font-medium text-stone-100 whitespace-nowrap">
                                      <div className="flex items-center justify-center h-full">
                                         {getPositionIcon(`${index + 1}º`)}
                                      </div>
                                 </td>
-                                <td className="px-6 py-4 text-[var(--text-on-dark)] font-medium">{student.name}</td>
-                                <td className="px-6 py-4 text-center font-bold text-[var(--text-on-dark)]">{student.points}</td>
+                                <td className="px-6 py-4 text-stone-100 font-medium">{student.name}</td>
+                                <td className="px-6 py-4 text-center font-bold text-stone-100">{student.points}</td>
                                 <td className="px-6 py-4 text-center">
                                     <EditableStat 
                                         value={student.wins}
                                         onChange={(newValue) => onUpdate(classId, index, { wins: newValue, draws: student.draws, losses: student.losses })}
-                                        colorClass="text-[var(--status-win)]"
+                                        colorClass="text-green-400"
                                     />
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <EditableStat 
                                         value={student.draws}
                                         onChange={(newValue) => onUpdate(classId, index, { wins: student.wins, draws: newValue, losses: student.losses })}
-                                        colorClass="text-[var(--status-draw)]"
+                                        colorClass="text-blue-400"
                                     />
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <EditableStat 
                                         value={student.losses}
                                         onChange={(newValue) => onUpdate(classId, index, { wins: student.wins, draws: student.draws, losses: newValue })}
-                                        colorClass="text-[var(--status-loss)]"
+                                        colorClass="text-red-400"
                                     />
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <button
                                         onClick={() => handleOpenAnalysis(student)}
-                                        className="p-2 rounded-full bg-[var(--accent-color)]/20 text-[var(--accent-color)] hover:bg-[var(--accent-color)]/40 transition-colors"
+                                        className="p-2 rounded-full bg-yellow-600/20 text-yellow-600 hover:bg-yellow-600/40 transition-colors"
                                         aria-label={`Analisar ${student.name}`}
                                     >
                                         <SparklesIcon className="w-5 h-5" />
@@ -186,33 +186,33 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
 
             <div className="mt-6 block md:hidden space-y-4">
                 {classificationData.students.map((student, index) => (
-                    <div key={student.name} className="bg-white/5 border border-[var(--border-color)] rounded-lg p-4 shadow">
+                    <div key={student.name} className="bg-white/5 border border-stone-800 rounded-lg p-4 shadow">
                         <div className="flex justify-between items-start mb-3">
                             <div className="flex items-center gap-4">
                                 <div className="flex-shrink-0 w-20 flex justify-start">
                                     {getPositionIcon(`${index + 1}º`)}
                                 </div>
                                 <div>
-                                    <h3 className="font-bold text-lg text-[var(--text-on-dark)] leading-tight">{student.name}</h3>
-                                    <p className="text-sm font-bold text-[var(--accent-color)]">{student.points} Pontos</p>
+                                    <h3 className="font-bold text-lg text-stone-100 leading-tight">{student.name}</h3>
+                                    <p className="text-sm font-bold text-yellow-600">{student.points} Pontos</p>
                                 </div>
                             </div>
                              <button
                                 onClick={() => handleOpenAnalysis(student)}
-                                className="p-2 rounded-full bg-[var(--accent-color)]/20 text-[var(--accent-color)] hover:bg-[var(--accent-color)]/40 transition-colors flex-shrink-0"
+                                className="p-2 rounded-full bg-yellow-600/20 text-yellow-600 hover:bg-yellow-600/40 transition-colors flex-shrink-0"
                                 aria-label={`Analisar ${student.name}`}
                             >
                                 <SparklesIcon className="w-5 h-5" />
                             </button>
                         </div>
 
-                        <div className="grid grid-cols-3 text-center pt-4 border-t border-[var(--border-color)]">
+                        <div className="grid grid-cols-3 text-center pt-4 border-t border-stone-800">
                             <div>
                                 <div className="text-xs text-gray-400 uppercase font-semibold">Vitórias</div>
                                 <EditableStat 
                                     value={student.wins}
                                     onChange={(newValue) => onUpdate(classId, index, { wins: newValue, draws: student.draws, losses: student.losses })}
-                                    colorClass="text-[var(--status-win)]"
+                                    colorClass="text-green-400"
                                 />
                             </div>
                             <div>
@@ -220,7 +220,7 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
                                 <EditableStat 
                                     value={student.draws}
                                     onChange={(newValue) => onUpdate(classId, index, { wins: student.wins, draws: newValue, losses: student.losses })}
-                                    colorClass="text-[var(--status-draw)]"
+                                    colorClass="text-blue-400"
                                 />
                             </div>
                             <div>
@@ -228,7 +228,7 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
                                 <EditableStat 
                                     value={student.losses}
                                     onChange={(newValue) => onUpdate(classId, index, { wins: student.wins, draws: student.draws, losses: newValue })}
-                                    colorClass="text-[var(--status-loss)]"
+                                    colorClass="text-red-400"
                                 />
                             </div>
                         </div>
@@ -243,12 +243,12 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
             >
                 {isAnalyzing ? (
                     <div className="flex flex-col items-center justify-center p-8">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--accent-color)]"></div>
-                        <p className="mt-4 text-lg text-[var(--text-secondary)]">Analisando desempenho...</p>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-600"></div>
+                        <p className="mt-4 text-lg text-stone-400">Analisando desempenho...</p>
                     </div>
                 ) : (
                     <div
-                        className="text-lg leading-relaxed text-[var(--text-secondary)] space-y-4"
+                        className="text-lg leading-relaxed text-stone-400 space-y-4"
                         dangerouslySetInnerHTML={{ __html: analysisResult }}
                     />
                 )}

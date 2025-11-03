@@ -86,8 +86,8 @@ export const AlgebraicNotationView: React.FC<AlgebraicNotationViewProps> = ({ on
             onClick={() => setActiveTab(tabId)}
             className={`flex-1 flex items-center justify-center gap-2 p-3 text-sm md:text-base font-bold rounded-t-lg transition-colors ${
                 activeTab === tabId
-                    ? 'bg-white/10 text-[var(--accent-color)] border-b-2 border-[var(--accent-color)]'
-                    : 'text-[var(--text-secondary)] hover:bg-white/5'
+                    ? 'bg-white/10 text-yellow-600 border-b-2 border-yellow-600'
+                    : 'text-stone-400 hover:bg-white/5'
             }`}
         >
             {icon}
@@ -96,14 +96,14 @@ export const AlgebraicNotationView: React.FC<AlgebraicNotationViewProps> = ({ on
     );
 
     return (
-        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full max-w-4xl flex flex-col h-[90vh]">
+        <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-4xl flex flex-col h-[90vh]">
             <BackButton onClick={onBack} />
             <div className="flex items-center mb-4">
-                <BookOpenIcon className="h-8 w-8 mr-3 text-[var(--accent-color)]" />
-                <h1 className="text-3xl font-bold text-[var(--text-on-dark)]">Notação Algébrica</h1>
+                <BookOpenIcon className="h-8 w-8 mr-3 text-yellow-600" />
+                <h1 className="text-3xl font-bold text-stone-100">Notação Algébrica</h1>
             </div>
 
-            <div className="flex border-b border-[var(--border-color)] mb-6 flex-shrink-0">
+            <div className="flex border-b border-stone-800 mb-6 flex-shrink-0">
                 <TabButton tabId="anotar" title="Anotar Partida" icon={<PencilIcon className="w-5 h-5" />} />
                 <TabButton tabId="analisar" title="Analisar com IA" icon={<SparklesIcon className="w-5 h-5" />} />
                 <TabButton tabId="aprender" title="Aprender" icon={<BookOpenIcon className="w-5 h-5" />} />
@@ -120,11 +120,11 @@ export const AlgebraicNotationView: React.FC<AlgebraicNotationViewProps> = ({ on
 
 const NotationSheetTab: React.FC<{ moves: {white: string, black: string}[], onMoveChange: (index: number, color: 'white' | 'black', value: string) => void }> = ({ moves, onMoveChange }) => (
     <div>
-        <h2 className="text-xl font-bold text-[var(--text-on-dark)] mb-4">Planilha de Anotação</h2>
-        <p className="text-[var(--text-secondary)] mb-6">Use esta planilha para registrar os lances de uma partida em andamento.</p>
+        <h2 className="text-xl font-bold text-stone-100 mb-4">Planilha de Anotação</h2>
+        <p className="text-stone-400 mb-6">Use esta planilha para registrar os lances de uma partida em andamento.</p>
         <div className="overflow-x-auto">
             <table className="w-full text-sm text-left">
-                <thead className="text-xs text-[var(--text-on-dark)] uppercase bg-[var(--table-header-bg)]">
+                <thead className="text-xs text-stone-100 uppercase bg-black/20">
                     <tr>
                         <th scope="col" className="px-3 py-3 w-12 text-center rounded-l-lg">#</th>
                         <th scope="col" className="px-3 py-3 bg-white/5">Lance das Brancas</th>
@@ -133,8 +133,8 @@ const NotationSheetTab: React.FC<{ moves: {white: string, black: string}[], onMo
                 </thead>
                 <tbody>
                     {moves.map((move, index) => (
-                        <tr key={index} className="border-b border-[var(--border-color)]">
-                            <td className="px-3 py-1 text-center font-medium text-[var(--text-secondary)]">{index + 1}.</td>
+                        <tr key={index} className="border-b border-stone-800">
+                            <td className="px-3 py-1 text-center font-medium text-stone-400">{index + 1}.</td>
                             <td className="bg-white/5">
                                 <input
                                     type="text"
@@ -163,7 +163,7 @@ const NotationSheetTab: React.FC<{ moves: {white: string, black: string}[], onMo
 
 const AnalysisTab: React.FC<{ pgn: string; setPgn: (value: string) => void; analysis: string; isLoading: boolean; error: string; onAnalyze: () => void; }> = ({ pgn, setPgn, analysis, isLoading, error, onAnalyze }) => (
     <div>
-        <p className="text-[var(--text-secondary)] mb-4">
+        <p className="text-stone-400 mb-4">
             A partida que você anotou foi convertida para o formato PGN. Você pode editar ou colar outra partida abaixo e clicar para analisar.
         </p>
         <div className="space-y-4">
@@ -171,13 +171,13 @@ const AnalysisTab: React.FC<{ pgn: string; setPgn: (value: string) => void; anal
                 value={pgn}
                 onChange={(e) => setPgn(e.target.value)}
                 placeholder="Ex: 1. e4 e5 2. Nf3 Nc6 3. Bb5 a6..."
-                className="w-full h-48 p-4 bg-white/5 rounded-lg border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none text-[var(--text-on-light)] resize-y"
+                className="w-full h-48 p-4 bg-white/5 rounded-lg border border-stone-800 focus:ring-2 focus:ring-yellow-600 focus:outline-none text-stone-100 resize-y"
                 aria-label="Notação da partida de xadrez"
             />
             <button
                 onClick={onAnalyze}
                 disabled={isLoading}
-                className="w-full flex items-center justify-center gap-3 px-6 py-4 font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] rounded-lg hover:bg-[var(--btn-primary-hover-bg)] transition-colors duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-3 px-6 py-4 font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-300 text-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 {isLoading ? ( <> <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> <span>Analisando...</span> </> ) 
                 : ( <> <SparklesIcon className="w-6 h-6" /> <span>Analisar Partida</span> </> )}
@@ -185,10 +185,10 @@ const AnalysisTab: React.FC<{ pgn: string; setPgn: (value: string) => void; anal
         </div>
         {error && <div className="mt-6 p-4 bg-red-500/20 text-red-300 rounded-lg">{error}</div>}
         {analysis && (
-            <div className="mt-8 p-6 bg-white/5 rounded-lg border border-[var(--border-color)]">
-                <h2 className="text-2xl font-bold text-[var(--text-on-dark)] mb-4">Análise da IA</h2>
+            <div className="mt-8 p-6 bg-white/5 rounded-lg border border-stone-800">
+                <h2 className="text-2xl font-bold text-stone-100 mb-4">Análise da IA</h2>
                 <div
-                    className="text-lg leading-relaxed text-[var(--text-secondary)] space-y-4"
+                    className="text-lg leading-relaxed text-stone-400 space-y-4"
                     dangerouslySetInnerHTML={{ __html: analysis }}
                 />
             </div>
@@ -198,10 +198,10 @@ const AnalysisTab: React.FC<{ pgn: string; setPgn: (value: string) => void; anal
 
 const LearnNotationTab = () => (
     <div>
-        <h2 className="text-xl font-bold text-[var(--text-on-dark)] mb-4">Aprendendo a Notação Algébrica</h2>
-        <div className="space-y-6 text-[var(--text-secondary)]">
+        <h2 className="text-xl font-bold text-stone-100 mb-4">Aprendendo a Notação Algébrica</h2>
+        <div className="space-y-6 text-stone-400">
             <div>
-                <h3 className="text-lg font-semibold text-[var(--text-on-light)] mb-2">As Peças</h3>
+                <h3 className="text-lg font-semibold text-stone-100 mb-2">As Peças</h3>
                 <ul className="list-disc list-inside space-y-1 pl-2">
                     <li><strong className="text-white">R</strong> - Rei (King)</li>
                     <li><strong className="text-white">D</strong> - Dama (Queen)</li>
@@ -212,7 +212,7 @@ const LearnNotationTab = () => (
                 </ul>
             </div>
             <div>
-                <h3 className="text-lg font-semibold text-[var(--text-on-light)] mb-2">Símbolos Especiais</h3>
+                <h3 className="text-lg font-semibold text-stone-100 mb-2">Símbolos Especiais</h3>
                  <ul className="list-disc list-inside space-y-1 pl-2">
                     <li><strong className="text-white">x</strong> - Captura (ex: <strong className="text-white">Bxe5</strong>, o Bispo captura a peça em e5)</li>
                     <li><strong className="text-white">0-0</strong> - Roque pequeno (lado do Rei)</li>
@@ -224,7 +224,7 @@ const LearnNotationTab = () => (
                 </ul>
             </div>
             <div>
-                <h3 className="text-lg font-semibold text-[var(--text-on-light)] mb-2">Como Ler um Lance</h3>
+                <h3 className="text-lg font-semibold text-stone-100 mb-2">Como Ler um Lance</h3>
                 <p>A estrutura básica é: <strong className="text-white">[Peça][Casa de Destino]</strong>.</p>
                 <ul className="list-disc list-inside space-y-1 pl-2 mt-2">
                     <li><strong className="text-white">e4</strong>: O peão se move para a casa e4. (Peões não usam letra).</li>

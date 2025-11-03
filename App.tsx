@@ -1,279 +1,206 @@
 import React, { useState, useEffect } from 'react';
-import { Background } from './components/Background.tsx';
-import { LoginView } from './components/LoginView.tsx';
-import { Sidebar } from './components/Sidebar.tsx';
-import { MainMenuView } from './components/MainMenuView.tsx';
-import { HamburgerIcon } from './components/icons/HamburgerIcon.tsx';
-import { WelcomeScreen } from './components/WelcomeScreen.tsx';
-import { ClassView } from './components/ClassView.tsx';
-import { ClassificationView } from './components/ClassificationView.tsx';
-import { AlgebraicNotationView } from './components/AlgebraicNotationView.tsx';
-import { TournamentView } from './components/TournamentView.tsx';
-import { initialClassData, initialClassificationData } from './constants.ts';
-import type { ClassDataMap, ClassificationDataMap } from './types.ts';
-import { ClassListView } from './components/ClassListView.tsx';
-import { ClassificationListView } from './components/ClassificationListView.tsx';
-import { EmentaView } from './components/EmentaView.tsx';
+import { Sidebar } from './components/Sidebar';
+import { MainMenuView } from './components/MainMenuView';
+import { ClassListView } from './components/ClassListView';
+import { ClassView } from './components/ClassView';
+import { ClassificationListView } from './components/ClassificationListView';
+import { ClassificationView } from './components/ClassificationView';
+import { TournamentView } from './components/TournamentView';
+import { AlgebraicNotationView } from './components/AlgebraicNotationView';
+import { CheckmateExercisesView } from './components/CheckmateExercisesView';
+import { EmentaView } from './components/EmentaView';
+import { ActivityLogView } from './components/ActivityLogView';
+import { LoginView } from './components/LoginView';
+import { Background } from './components/Background';
+import { HamburgerIcon } from './components/icons/HamburgerIcon';
+import { XIcon } from './components/icons/XIcon';
+import type { ClassDataMap, ClassificationDataMap, ActivityLogData } from './types';
+import { initialClassData, initialClassificationData } from './constants';
+import { activityLogData as initialActivityLogData } from './activityLogData';
+
+type View =
+  | 'welcome'
+  | 'classes'
+  | 'class-view'
+  | 'classifications'
+  | 'classification-view'
+  | 'tournament'
+  | 'algebraic-notation'
+  | 'checkmate-exercises'
+  | 'ementa'
+  | 'activity-log';
 
 const App: React.FC = () => {
-    // State management
-    const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('isAuthenticated') === 'true');
-    const [view, setView] = useState('main-menu');
-    const [activeClassId, setActiveClassId] = useState<string | null>(null);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [view, setView] = useState<View>('welcome');
+    const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+    const [classData, setClassData] = useState<ClassDataMap>({});
+    const [classificationData, setClassificationData] = useState<ClassificationDataMap>({});
+    const [activityLog, setActivityLog] = useState<ActivityLogData>(initialActivityLogData);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [expandedMenu, setExpandedMenu] = useState<string | null>('classes');
-
-    // Data state with localStorage persistence
-    const [classData, setClassData] = useState<ClassDataMap>(() => {
-        try {
-            const saved = localStorage.getItem('classData');
-            return saved ? JSON.parse(saved) : initialClassData;
-        } catch (e) {
-            console.error("Failed to load class data from localStorage", e);
-            return initialClassData;
-        }
-    });
-
-    const [classificationData, setClassificationData] = useState<ClassificationDataMap>(() => {
-        try {
-            const saved = localStorage.getItem('classificationData');
-            return saved ? JSON.parse(saved) : initialClassificationData;
-        } catch (e) {
-            console.error("Failed to load classification data from localStorage", e);
-            return initialClassificationData;
-        }
-    });
 
     useEffect(() => {
-        localStorage.setItem('isAuthenticated', String(isAuthenticated));
-    }, [isAuthenticated]);
+        const loggedIn = localStorage.getItem('isAuthenticated');
+        if (loggedIn === 'true') {
+            setIsAuthenticated(true);
+        }
 
-    const saveClassData = (): boolean => {
+        // Robust data loading from localStorage
+        try {
+            const savedClassData = localStorage.getItem('classData');
+            if (savedClassData) {
+                setClassData(JSON.parse(savedClassData));
+            } else {
+                setClassData(initialClassData);
+            }
+        } catch (error) {
+            console.error("Failed to load class data, falling back to initial data.", error);
+            setClassData(initialClassData);
+        }
+
+        try {
+            const savedClassificationData = localStorage.getItem('classificationData');
+            if (savedClassificationData) {
+                setClassificationData(JSON.parse(savedClassificationData));
+            } else {
+                setClassificationData(initialClassificationData);
+            }
+        } catch (error) {
+            console.error("Failed to load classification data, falling back to initial data.", error);
+            setClassificationData(initialClassificationData);
+        }
+        
+        try {
+            const savedActivityLog = localStorage.getItem('activityLogData');
+            if (savedActivityLog) {
+                setActivityLog(JSON.parse(savedActivityLog));
+            } else {
+                setActivityLog(initialActivityLogData);
+            }
+        } catch (error) {
+            console.error("Failed to load activity log, falling back to initial data.", error);
+            setActivityLog(initialActivityLogData);
+        }
+
+    }, []);
+
+    const handleLoginSuccess = () => {
+        localStorage.setItem('isAuthenticated', 'true');
+        setIsAuthenticated(true);
+    };
+
+    const handleLogout = () => {
+        localStorage.removeItem('isAuthenticated');
+        setIsAuthenticated(false);
+        setView('welcome');
+    };
+
+    const handleUpdateAttendance = (classId: string, studentId: number, date: string, status: 'P' | 'F') => {
+        setClassData(prevData => {
+            const newClassData = JSON.parse(JSON.stringify(prevData));
+            const student = newClassData[classId].students.find((s: any) => s.id === studentId);
+            if (student) {
+                if (!newClassData[classId].dates.includes(date)) {
+                     newClassData[classId].dates.push(date);
+                }
+                student.attendance[date] = status;
+            }
+            return newClassData;
+        });
+    };
+
+    const handleUpdateClassification = (classId: string, studentIndex: number, newStats: { wins: number; draws: number; losses: number }) => {
+        setClassificationData(prevData => {
+            const newData = JSON.parse(JSON.stringify(prevData));
+            const student = newData[classId].students[studentIndex];
+            if (student) {
+                student.wins = newStats.wins;
+                student.draws = newStats.draws;
+                student.losses = newStats.losses;
+                const points = (student.wins * 1) + (student.draws * 0.5);
+                student.points = points.toLocaleString('pt-BR');
+            }
+            newData[classId].students.sort((a: any, b: any) => parseFloat(b.points.replace(',', '.')) - parseFloat(a.points.replace(',', '.')));
+            return newData;
+        });
+    };
+
+    const handleUpdateActivityLog = (newLogData: ActivityLogData) => {
+        setActivityLog(newLogData);
+        localStorage.setItem('activityLogData', JSON.stringify(newLogData));
+    }
+
+    const saveData = (): boolean => {
         try {
             localStorage.setItem('classData', JSON.stringify(classData));
-            console.log('Class data saved to localStorage.');
-            return true;
-        } catch (e) {
-            console.error("Failed to save class data to localStorage", e);
-            return false;
-        }
-    };
-
-    const saveClassificationData = (): boolean => {
-        try {
             localStorage.setItem('classificationData', JSON.stringify(classificationData));
-            console.log('Classification data saved to localStorage.');
             return true;
-        } catch (e) {
-            console.error("Failed to save classification data to localStorage", e);
+        } catch (error) {
+            console.error("Failed to save data to localStorage", error);
             return false;
         }
     };
 
-
-    const handleLogin = () => setIsAuthenticated(true);
-    const handleLogout = () => {
-        setIsAuthenticated(false);
-        setView('main-menu'); // Reset to main menu on logout
-    };
-
-    const handleViewChange = (newView: string, classId?: string) => {
-        if (newView === 'classes' || newView === 'classification') {
-            if (classId) {
-                setView(newView);
-                setActiveClassId(classId);
-            } else {
-                 // When a main category is clicked (e.g., from the main menu),
-                 // switch to that view (which will show a list or welcome/prompt)
-                 // and expand the corresponding sidebar menu.
-                setView(newView);
-                setExpandedMenu(newView);
-                setActiveClassId(null);
-            }
-        } else {
-            setView(newView);
-            setActiveClassId(null);
-        }
-        setIsSidebarOpen(false); // Close sidebar on navigation
-    };
-
-    const handleAttendanceUpdate = (classId: string, studentId: number, date: string, status: 'P' | 'F') => {
-        setClassData(prevData => {
-            const classToUpdate = prevData[classId];
-            if (!classToUpdate) return prevData;
-    
-            const newDates = classToUpdate.dates.includes(date)
-                ? classToUpdate.dates
-                : [...classToUpdate.dates, date];
-            
-            const newStudents = classToUpdate.students.map(student => {
-                if (student.id === studentId) {
-                    return {
-                        ...student,
-                        attendance: {
-                            ...student.attendance,
-                            [date]: status,
-                        },
-                    };
-                }
-                return student;
-            });
-    
-            return {
-                ...prevData,
-                [classId]: {
-                    ...classToUpdate,
-                    dates: newDates,
-                    students: newStudents,
-                },
-            };
-        });
-    };
-
-    const handleClassificationUpdate = (classId: string, studentIndex: number, newStats: { wins: number; draws: number; losses: number }) => {
-        setClassificationData(prevData => {
-            const classToUpdate = prevData[classId];
-            if (!classToUpdate) return prevData;
-
-            const updatedStudents = classToUpdate.students.map((student, index) => {
-                if (index === studentIndex) {
-                    const points = (newStats.wins * 1) + (newStats.draws * 0.5);
-                    return {
-                        ...student,
-                        ...newStats,
-                        points: points.toLocaleString('pt-BR'),
-                    };
-                }
-                return student;
-            });
-
-            // Sort and update positions
-            updatedStudents.sort((a, b) => {
-                const pointsA = parseFloat(a.points.replace(',', '.'));
-                const pointsB = parseFloat(b.points.replace(',', '.'));
-                return pointsB - pointsA;
-            });
-
-            const finalStudents = updatedStudents.map((s, index) => ({
-                ...s,
-                position: `${index + 1}º`,
-            }));
-
-            return {
-                ...prevData,
-                [classId]: {
-                    ...classToUpdate,
-                    students: finalStudents,
-                },
-            };
-        });
-    };
 
     const renderView = () => {
         switch (view) {
-            case 'main-menu':
-                return <MainMenuView onMenuAction={(menu) => handleViewChange(menu)} />;
             case 'classes':
-                if (activeClassId && classData[activeClassId]) {
-                    return <ClassView 
-                                classId={activeClassId} 
-                                classData={classData[activeClassId]} 
-                                onBack={() => handleViewChange('classes')} 
-                                onUpdate={handleAttendanceUpdate} 
-                                onSave={saveClassData}
-                            />;
-                }
-                return <ClassListView 
-                            classDataMap={classData}
-                            onSelectClass={(classId) => handleViewChange('classes', classId)}
-                            onBack={() => handleViewChange('main-menu')}
-                        />;
-            case 'classification':
-                if (activeClassId && classificationData[activeClassId]) {
-                    return <ClassificationView 
-                                classId={activeClassId}
-                                classificationData={classificationData[activeClassId]} 
-                                onBack={() => handleViewChange('classification')}
-                                onUpdate={handleClassificationUpdate}
-                                onSave={saveClassificationData}
-                            />;
-                }
-                return <ClassificationListView
-                            classificationDataMap={classificationData}
-                            onSelectClassification={(classId) => handleViewChange('classification', classId)}
-                            onBack={() => handleViewChange('main-menu')}
-                        />;
-            case 'notation':
-                return <AlgebraicNotationView onBack={() => handleViewChange('main-menu')} />;
+                return <ClassListView classDataMap={classData} onSelectClass={(id) => { setSelectedClassId(id); setView('class-view'); }} onBack={() => setView('welcome')} />;
+            case 'class-view':
+                return selectedClassId && classData[selectedClassId] ? <ClassView classId={selectedClassId} classData={classData[selectedClassId]} onBack={() => setView('classes')} onUpdate={handleUpdateAttendance} onSave={saveData} /> : <MainMenuView setView={(v) => setView(v as View)} />;
+            case 'classifications':
+                return <ClassificationListView classificationDataMap={classificationData} onSelectClassification={(id) => { setSelectedClassId(id); setView('classification-view'); }} onBack={() => setView('welcome')} />;
+            case 'classification-view':
+                 return selectedClassId && classificationData[selectedClassId] ? <ClassificationView classId={selectedClassId} classificationData={classificationData[selectedClassId]} onBack={() => setView('classifications')} onUpdate={handleUpdateClassification} onSave={saveData} /> : <MainMenuView setView={(v) => setView(v as View)} />;
             case 'tournament':
-                return <TournamentView onBack={() => handleViewChange('main-menu')} />;
+                return <TournamentView onBack={() => setView('welcome')} />;
+            case 'algebraic-notation':
+                return <AlgebraicNotationView onBack={() => setView('welcome')} />;
+            case 'checkmate-exercises':
+                return <CheckmateExercisesView onBack={() => setView('welcome')} />;
             case 'ementa':
-                return <EmentaView onBack={() => handleViewChange('main-menu')} />;
+                return <EmentaView onBack={() => setView('welcome')} />;
+            case 'activity-log':
+                return <ActivityLogView onBack={() => setView('welcome')} activityLogData={activityLog} onUpdate={handleUpdateActivityLog} />;
+            case 'welcome':
             default:
-                return <WelcomeScreen />;
+                return <MainMenuView setView={(v) => setView(v as View)} />;
         }
     };
-
+    
     if (!isAuthenticated) {
         return (
-            <main className="relative min-h-screen w-full">
+            <main className="relative w-screen h-screen font-poppins">
                 <Background />
-                <LoginView onLoginSuccess={handleLogin} />
+                <LoginView onLoginSuccess={handleLoginSuccess} />
             </main>
         );
     }
 
-    const activeItem = activeClassId ? `${view}-${activeClassId}` : view;
-
     return (
-        <div className="relative min-h-screen w-full flex">
-            <style>{/* CSS Variables */ `
-                :root {
-                    --main-bg: #1c1917;
-                    --content-bg: rgba(41, 37, 36, 0.8);
-                    --sidebar-bg: rgba(28, 25, 23, 0.9);
-                    --sidebar-hover-bg: rgba(252, 211, 77, 0.1);
-                    --card-bg: rgba(41, 37, 36, 0.6);
-                    --text-on-dark: #fde68a;
-                    --text-on-light: #fef3c7;
-                    --text-on-sidebar: #fef3c7;
-                    --text-secondary: #a8a29e;
-                    --accent-color: #facc15;
-                    --accent-hover: #f59e0b;
-                    --border-color: rgba(250, 204, 21, 0.2);
-                    --glow-color: rgba(250, 204, 21, 0.3);
-                    --btn-primary-bg: #ca8a04;
-                    --btn-primary-hover-bg: #a16207;
-                    --btn-primary-text: #1c1917;
-                    --table-header-bg: rgba(250, 204, 21, 0.1);
-                    --status-win: #4ade80;
-                    --status-loss: #f87171;
-                    --status-draw: #60a5fa;
-                }
-            `}</style>
+        <div className="relative w-screen h-screen font-poppins flex text-stone-200">
             <Background />
-            
+
+            {/* Mobile Header */}
+            <header className="md:hidden fixed top-0 left-0 right-0 z-40 bg-stone-900/90 backdrop-blur-lg border-b border-stone-800 p-4 flex items-center justify-between h-[72px]">
+                 <span className="text-lg font-bold">Painel de Xadrez</span>
+                <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-1">
+                    {isSidebarOpen ? <XIcon className="w-6 h-6" /> : <HamburgerIcon className="w-6 h-6" />}
+                </button>
+            </header>
+
             <Sidebar
-                onViewChange={handleViewChange}
-                activeItem={activeItem}
+                setView={(v) => {
+                    setView(v as View);
+                    setIsSidebarOpen(false);
+                }}
+                onLogout={handleLogout}
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
-                expandedMenu={expandedMenu}
-                onToggleMenu={(menu) => setExpandedMenu(menu)}
-                onLogout={handleLogout}
             />
-
-            <main className="flex-1 flex flex-col p-4 md:p-6 relative z-10 md:ml-72 transition-all duration-300">
-                 <button 
-                    onClick={() => setIsSidebarOpen(true)}
-                    className="md:hidden p-2 bg-[var(--sidebar-bg)] rounded-full fixed top-4 left-4 z-50 shadow-lg"
-                    aria-label="Abrir menu"
-                >
-                    <HamburgerIcon className="h-6 w-6 text-[var(--accent-color)]" />
-                </button>
-                <div className="w-full h-full flex items-center justify-center">
-                    {renderView()}
-                </div>
+            
+            <main className="flex-1 p-4 md:p-6 flex justify-center items-start overflow-y-auto mt-16 md:mt-0">
+                {renderView()}
             </main>
         </div>
     );

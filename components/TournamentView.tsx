@@ -34,24 +34,24 @@ const TournamentSetup: React.FC<{ onStart: (name: string, playerCount: number) =
 
     return (
         <div className="max-w-md mx-auto">
-            <h2 className="text-2xl font-bold text-center text-[var(--text-on-dark)] mb-6">Criar Novo Torneio</h2>
+            <h2 className="text-2xl font-bold text-center text-stone-100 mb-6">Criar Novo Torneio</h2>
             {error && <div className="bg-red-500/20 text-red-300 p-3 rounded-lg mb-4 text-center">{error}</div>}
             
             <div className="space-y-6">
                 <div>
-                    <label htmlFor="tournament-name" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Nome do Torneio</label>
+                    <label htmlFor="tournament-name" className="block text-sm font-medium text-stone-400 mb-2">Nome do Torneio</label>
                     <input
                         id="tournament-name"
                         type="text"
                         value={tournamentName}
                         onChange={(e) => setTournamentName(e.target.value)}
                         placeholder="Ex: Copa Escolar de Xadrez"
-                        className="w-full p-3 bg-white/5 rounded-lg border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none text-[var(--text-on-light)]"
+                        className="w-full p-3 bg-white/5 rounded-lg border border-stone-800 focus:ring-2 focus:ring-yellow-600 focus:outline-none text-stone-100"
                     />
                 </div>
 
                 <div>
-                    <label htmlFor="player-count" className="block text-sm font-medium text-[var(--text-secondary)] mb-2">Número de Participantes</label>
+                    <label htmlFor="player-count" className="block text-sm font-medium text-stone-400 mb-2">Número de Participantes</label>
                     <input
                         id="player-count"
                         type="number"
@@ -59,13 +59,13 @@ const TournamentSetup: React.FC<{ onStart: (name: string, playerCount: number) =
                         max="64"
                         value={playerCount}
                         onChange={(e) => setPlayerCount(parseInt(e.target.value, 10))}
-                        className="w-full p-3 bg-white/5 rounded-lg border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none text-[var(--text-on-light)]"
+                        className="w-full p-3 bg-white/5 rounded-lg border border-stone-800 focus:ring-2 focus:ring-yellow-600 focus:outline-none text-stone-100"
                     />
                 </div>
 
                 <button
                     onClick={handleStart}
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] rounded-lg hover:bg-[var(--btn-primary-hover-bg)] transition-colors duration-300 text-lg"
+                    className="w-full flex items-center justify-center gap-3 px-6 py-4 font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-300 text-lg"
                 >
                     <PlusIcon className="w-6 h-6" />
                     Gerar Torneio
@@ -98,8 +98,6 @@ const EditPlayersModal: React.FC<{
     };
 
     const handleSaveChanges = () => {
-        // FIX: Explicitly type the destructured array from Object.entries.
-        // This prevents `current` from being inferred as `unknown`, which caused the "Type 'unknown' is not assignable to type 'string'" error.
         const changes = Object.entries(playerNames).reduce((acc: Record<string, string>, [original, current]: [string, string]) => {
             if (original !== current) {
                 acc[original] = current;
@@ -115,19 +113,19 @@ const EditPlayersModal: React.FC<{
             <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
                 {players.map(originalName => (
                     <div key={originalName}>
-                        <label className="block text-sm font-medium text-[var(--text-secondary)] mb-1">{originalName}</label>
+                        <label className="block text-sm font-medium text-stone-400 mb-1">{originalName}</label>
                         <input
                             type="text"
                             value={playerNames[originalName] || ''}
                             onChange={(e) => handleNameChange(originalName, e.target.value)}
-                            className="w-full p-2 bg-white/10 rounded-lg border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none text-[var(--text-on-light)]"
+                            className="w-full p-2 bg-white/10 rounded-lg border border-stone-800 focus:ring-2 focus:ring-yellow-600 focus:outline-none text-stone-100"
                         />
                     </div>
                 ))}
             </div>
             <div className="mt-6 flex justify-end gap-4">
-                <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-[var(--text-on-dark)] bg-white/5 rounded-lg hover:bg-white/10 transition-colors">Cancelar</button>
-                <button onClick={handleSaveChanges} className="px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] rounded-lg hover:bg-[var(--btn-primary-hover-bg)] transition-colors">Salvar Alterações</button>
+                <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-stone-100 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">Cancelar</button>
+                <button onClick={handleSaveChanges} className="px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors">Salvar Alterações</button>
             </div>
         </Modal>
     );
@@ -138,10 +136,10 @@ const PlayerRanking: React.FC<{ players: PlayerStats[], schedule: Match[] }> = (
     
     return (
         <div className="mb-8">
-            <h3 className="text-xl font-bold text-[var(--text-on-dark)] mb-4">Classificação</h3>
+            <h3 className="text-xl font-bold text-stone-100 mb-4">Classificação</h3>
             <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left text-[var(--text-secondary)]">
-                    <thead className="text-xs text-[var(--text-on-dark)] uppercase bg-[var(--table-header-bg)]">
+                <table className="w-full text-sm text-left text-stone-400">
+                    <thead className="text-xs text-stone-100 uppercase bg-black/20">
                         <tr>
                             <th scope="col" className="px-4 py-3 rounded-l-lg font-semibold w-12 text-center">#</th>
                             <th scope="col" className="px-4 py-3 font-semibold">Jogador</th>
@@ -154,10 +152,10 @@ const PlayerRanking: React.FC<{ players: PlayerStats[], schedule: Match[] }> = (
                     </thead>
                     <tbody>
                         {sorted.map((player, index) => (
-                            <tr key={player.name} className="bg-white/5 border-b border-[var(--border-color)]">
-                                <td className="px-4 py-3 text-center font-medium text-[var(--text-on-dark)]">{index + 1}</td>
-                                <td className="px-4 py-3 font-medium text-[var(--text-on-dark)] whitespace-nowrap">{player.name}</td>
-                                <td className="px-4 py-3 text-center font-bold text-[var(--accent-color)]">{player.points}</td>
+                            <tr key={player.name} className="bg-white/5 border-b border-stone-800">
+                                <td className="px-4 py-3 text-center font-medium text-stone-100">{index + 1}</td>
+                                <td className="px-4 py-3 font-medium text-stone-100 whitespace-nowrap">{player.name}</td>
+                                <td className="px-4 py-3 text-center font-bold text-yellow-600">{player.points}</td>
                                 <td className="px-4 py-3 text-center text-green-400">{player.wins}</td>
                                 <td className="px-4 py-3 text-center text-blue-400">{player.draws}</td>
                                 <td className="px-4 py-3 text-center text-red-400">{player.losses}</td>
@@ -175,7 +173,7 @@ const MatchRow: React.FC<{ match: Match, onUpdate: (result: MatchResult) => void
     if (match.player1 === 'BYE' || match.player2 === 'BYE') {
         const playingPlayer = match.player1 === 'BYE' ? match.player2 : match.player1;
         return (
-             <tr className="bg-white/5 border-b border-[var(--border-color)] opacity-60">
+             <tr className="bg-white/5 border-b border-stone-800 opacity-60">
                 <td colSpan={3} className="px-4 py-3 text-center italic">{playingPlayer} descansa nesta rodada.</td>
             </tr>
         );
@@ -183,12 +181,12 @@ const MatchRow: React.FC<{ match: Match, onUpdate: (result: MatchResult) => void
     
     const getButtonClass = (isActive: boolean) =>
         `px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
-            isActive ? 'bg-[var(--accent-color)] text-[var(--btn-primary-text)]' : 'bg-white/10 hover:bg-white/20'
+            isActive ? 'bg-yellow-600 text-stone-900' : 'bg-white/10 hover:bg-white/20'
         }`;
 
     return (
-        <tr className="bg-white/5 border-b border-[var(--border-color)]">
-            <td className="px-4 py-3 font-medium text-right text-[var(--text-on-dark)] w-2/5">{match.player1}</td>
+        <tr className="bg-white/5 border-b border-stone-800">
+            <td className="px-4 py-3 font-medium text-right text-stone-100 w-2/5">{match.player1}</td>
             <td className="px-2 py-3 text-center w-1/5">
                 <div className="flex justify-center items-center gap-2">
                     <button onClick={() => onUpdate('P1_WIN')} className={getButtonClass(match.result === 'P1_WIN')}>V1</button>
@@ -196,7 +194,7 @@ const MatchRow: React.FC<{ match: Match, onUpdate: (result: MatchResult) => void
                     <button onClick={() => onUpdate('P2_WIN')} className={getButtonClass(match.result === 'P2_WIN')}>V2</button>
                 </div>
             </td>
-            <td className="px-4 py-3 font-medium text-left text-[var(--text-on-dark)] w-2/5">{match.player2}</td>
+            <td className="px-4 py-3 font-medium text-left text-stone-100 w-2/5">{match.player2}</td>
         </tr>
     );
 };
@@ -213,15 +211,13 @@ const MatchSchedule: React.FC<{ schedule: Match[], onUpdate: (matchIndex: number
 
     return (
         <div>
-            <h3 className="text-xl font-bold text-[var(--text-on-dark)] mb-4">Confrontos</h3>
-            {/* FIX: Explicitly type the destructured array from Object.entries.
-            This prevents `matches` from being inferred as `unknown`, which caused the "Property 'map' does not exist on type 'unknown'" error. */}
+            <h3 className="text-xl font-bold text-stone-100 mb-4">Confrontos</h3>
             {Object.entries(matchesByRound).map(([round, matches]: [string, (Match & { originalIndex: number })[]]) => (
                 <div key={round} className="mb-6">
-                    <h4 className="text-lg font-semibold text-[var(--text-on-light)] mb-3">{round}</h4>
+                    <h4 className="text-lg font-semibold text-stone-100 mb-3">{round}</h4>
                     <div className="overflow-x-auto">
-                        <table className="w-full text-sm text-left text-[var(--text-secondary)]">
-                            <thead className="text-xs text-[var(--text-on-dark)] uppercase bg-[var(--table-header-bg)]">
+                        <table className="w-full text-sm text-left text-stone-400">
+                            <thead className="text-xs text-stone-100 uppercase bg-black/20">
                                 <tr>
                                     <th scope="col" className="px-4 py-2 font-semibold text-right rounded-l-lg w-2/5">Brancas</th>
                                     <th scope="col" className="px-2 py-2 font-semibold text-center w-1/5">Resultado</th>
@@ -314,7 +310,7 @@ const GroupStage: React.FC<{ tournament: Tournament, setTournament: React.Dispat
         <>
             {tournament.groups.map((group, groupIndex) => (
                 <div key={group.name} className="mb-12">
-                    <h2 className="text-2xl font-bold text-[var(--accent-color)] mb-6 pb-2 border-b-2 border-[var(--border-color)]">{group.name}</h2>
+                    <h2 className="text-2xl font-bold text-yellow-600 mb-6 pb-2 border-b-2 border-stone-800">{group.name}</h2>
                     <PlayerRanking players={group.players} schedule={group.schedule} />
                     <MatchSchedule schedule={group.schedule} onUpdate={(matchIndex, result) => handleUpdateResult(groupIndex, matchIndex, result)} />
                 </div>
@@ -420,7 +416,7 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
 
     if (!tournament) {
         return (
-            <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full max-w-2xl">
+            <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-2xl">
                 <BackButton onClick={onBack} />
                 <TournamentSetup onStart={handleStartTournament} />
             </div>
@@ -428,19 +424,19 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
     }
 
     return (
-        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full max-w-5xl">
+        <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-5xl">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div>
                     <BackButton onClick={onBack} />
                     <div className="flex items-center gap-4">
-                        <TrophyIcon className="h-10 w-10 text-[var(--accent-color)]" />
-                        <h1 className="text-3xl md:text-4xl font-bold text-[var(--text-on-dark)]">{tournament.name}</h1>
+                        <TrophyIcon className="h-10 w-10 text-yellow-600" />
+                        <h1 className="text-3xl md:text-4xl font-bold text-stone-100">{tournament.name}</h1>
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
                     <button 
                         onClick={() => setIsEditModalOpen(true)}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)]/80 rounded-lg hover:bg-[var(--btn-primary-bg)] transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600/80 rounded-lg hover:bg-yellow-600 transition-colors"
                     >
                         <PencilIcon className="w-5 h-5" />
                         Editar Jogadores
@@ -455,16 +451,16 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
                 </div>
             </div>
 
-            <div className="mb-8 p-6 bg-white/5 rounded-lg border border-[var(--border-color)]">
+            <div className="mb-8 p-6 bg-white/5 rounded-lg border border-stone-800">
                 <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-bold text-[var(--text-on-dark)] flex items-center gap-3">
+                    <h3 className="text-xl font-bold text-stone-100 flex items-center gap-3">
                         <DocumentTextIcon className="w-6 h-6" />
                         Regras do Torneio
                     </h3>
                     {!isEditingRules && (
                         <button
                             onClick={() => setIsEditingRules(true)}
-                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)]/80 rounded-lg hover:bg-[var(--btn-primary-bg)] transition-colors"
+                            className="flex items-center gap-2 px-3 py-1.5 text-xs font-bold text-stone-900 bg-yellow-600/80 rounded-lg hover:bg-yellow-600 transition-colors"
                         >
                             <PencilIcon className="w-4 h-4" />
                             Editar
@@ -478,23 +474,23 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
                             value={rulesText}
                             onChange={(e) => setRulesText(e.target.value)}
                             placeholder="Digite cada regra em uma nova linha."
-                            className="w-full h-40 p-3 bg-white/5 rounded-lg border border-[var(--border-color)] focus:ring-2 focus:ring-[var(--accent-color)] focus:outline-none text-[var(--text-on-light)] resize-y"
+                            className="w-full h-40 p-3 bg-white/5 rounded-lg border border-stone-800 focus:ring-2 focus:ring-yellow-600 focus:outline-none text-stone-100 resize-y"
                         />
                         <div className="mt-4 flex justify-end gap-4">
-                            <button onClick={handleCancelEditRules} className="px-4 py-2 text-sm font-medium text-[var(--text-on-dark)] bg-white/10 rounded-lg hover:bg-white/20 transition-colors">Cancelar</button>
-                            <button onClick={handleSaveRules} className="px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] rounded-lg hover:bg-[var(--btn-primary-hover-bg)] transition-colors">Salvar Regras</button>
+                            <button onClick={handleCancelEditRules} className="px-4 py-2 text-sm font-medium text-stone-100 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">Cancelar</button>
+                            <button onClick={handleSaveRules} className="px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors">Salvar Regras</button>
                         </div>
                     </div>
                 ) : (
                     <div>
                         {tournament.rules && tournament.rules.length > 0 ? (
-                            <ul className="list-disc list-inside space-y-2 text-[var(--text-secondary)] pl-2">
+                            <ul className="list-disc list-inside space-y-2 text-stone-400 pl-2">
                                 {tournament.rules.map((rule, index) => (
                                     <li key={index}>{rule}</li>
                                 ))}
                             </ul>
                         ) : (
-                            <p className="text-[var(--text-secondary)] italic">Nenhuma regra foi adicionada a este torneio.</p>
+                            <p className="text-stone-400 italic">Nenhuma regra foi adicionada a este torneio.</p>
                         )}
                     </div>
                 )}

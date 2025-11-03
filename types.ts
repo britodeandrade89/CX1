@@ -1,9 +1,9 @@
-// --- FIX: Added missing types for Class & Classification Views ---
-// These types were missing, causing import errors in `constants.ts`, `components/ClassView.tsx`, and `components/ClassificationView.tsx`.
+// types.ts
+
 export interface Student {
     id: number;
     name: string;
-    attendance: Record<string, 'P' | 'F'>;
+    attendance: { [date: string]: 'P' | 'F' };
 }
 
 export interface ClassData {
@@ -13,7 +13,7 @@ export interface ClassData {
 }
 
 export interface ClassDataMap {
-    [key: string]: ClassData;
+    [classId: string]: ClassData;
 }
 
 export interface ClassificationStudent {
@@ -31,12 +31,18 @@ export interface ClassificationData {
 }
 
 export interface ClassificationDataMap {
-    [key: string]: ClassificationData;
+    [classId: string]: ClassificationData;
 }
 
-// FIX: Add missing types for Tournament feature.
-// These types were missing, causing import errors in `components/TournamentView.tsx` and `utils/tournamentLogic.ts`.
+// Tournament types
 export type MatchResult = 'P1_WIN' | 'P2_WIN' | 'DRAW' | null;
+
+export interface Match {
+    round: number;
+    player1: string;
+    player2: string;
+    result: MatchResult;
+}
 
 export interface PlayerStats {
     name: string;
@@ -45,13 +51,6 @@ export interface PlayerStats {
     draws: number;
     losses: number;
     gamesPlayed: number;
-}
-
-export interface Match {
-    round: number;
-    player1: string;
-    player2: string;
-    result: MatchResult;
 }
 
 export interface Group {
@@ -64,14 +63,14 @@ export interface Tournament {
     name: string;
     players: string[];
     groups: Group[];
-    phase: 'group' | 'knockout';
+    phase: 'group' | 'final';
     finalists: PlayerStats[];
     finalSchedule: Match[];
     champion: string | null;
     rules: string[];
 }
 
-// --- Added types for Ementa View ---
+// Ementa types
 export interface EmentaHeader {
     government: string;
     city: string;
@@ -105,10 +104,14 @@ export interface EmentaSectionItem {
     description: string;
 }
 
-
 export interface EmentaSection {
     title: string;
     items: EmentaSectionItem[];
+}
+
+export interface EmentaFinalConsiderations {
+    title: string;
+    text: string;
 }
 
 export interface EmentaData {
@@ -118,8 +121,48 @@ export interface EmentaData {
     methodology: EmentaSection;
     evaluation: EmentaSection;
     didacticResources: EmentaSection;
-    finalConsiderations: {
-        title: string;
-        text: string;
+    finalConsiderations: EmentaFinalConsiderations;
+}
+
+// Activity Log types
+export interface ActivityLogHeader {
+    government: string;
+    city: string;
+    department: string;
+    school: string;
+    axis: string;
+    professor: string;
+    project: string;
+}
+
+export interface ActivityLogEntry {
+    date: string;
+    activities: string[];
+}
+
+export interface ActivityLogData {
+    title: string;
+    header: ActivityLogHeader;
+    log: ActivityLogEntry[];
+}
+
+// Checkmate Exercises types
+export type PieceType = 'k' | 'q' | 'r' | 'b' | 'n' | 'p';
+export type PieceColor = 'w' | 'b';
+export type PieceSymbol = `${PieceColor}${PieceType}`;
+export type Square = `${'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' | 'h'}${_Digit}`;
+type _Digit = '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8';
+
+export type Position = { [key in Square]?: PieceSymbol };
+
+export interface CheckmateExercise {
+    id: number;
+    difficulty: 'Fácil' | 'Médio' | 'Difícil';
+    position: Position;
+    turn: PieceColor;
+    solution: {
+        move: string;
+        comment: string;
     };
+    description: string;
 }

@@ -5,14 +5,9 @@ const CACHE_NAME = 'clube-do-xadrez-v1';
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
-    '/index.tsx',
-    '/App.tsx',
-    '/types.ts',
-    '/constants.ts',
     '/manifest.json',
-    'icon-192x192.svg',
-    'icon-512x512.svg',
-    'https://cdn.tailwindcss.com',
+    '/icon-192x192.svg',
+    '/icon-512x512.svg',
     'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap',
     'https://fonts.gstatic.com/s/poppins/v21/pxiByp8kv8JHgFVrLBT5Z1xlFQ.woff2'
 ];

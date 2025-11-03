@@ -1,0 +1,5 @@
+import React from 'react';
+
+export const QueenBIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
+    <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}><g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><g fill="#000" strokeLinecap="butt"><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(18)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(7)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(29.5)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(2.5)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(12.5)" /></g><path d="M9 26c8.5-1.5 21-1.5 27 0l2-12-7-2.5-3 4.5-5-3-5 3-3-4.5-7 2.5z" fill="#000" /><path d="M9 26c0 2 1.5 4 4 4h15c2.5 0 4-2 4-4 0 4 1.5 8 4 8s4-4 4-8-1.5-8-4-8-4 4-4 8" strokeLinecap="butt" /><path d="M11 30h24" strokeLinecap="butt" /><path d="M11 34h24" strokeLinecap="butt" /><path d="M12 38h22" strokeLinecap="butt" /><path d="M12 42h22" strokeLinecap="butt" /></g></svg>
+);

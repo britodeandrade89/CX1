@@ -67,7 +67,7 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
 
     if (!classData) {
         return (
-            <div className="p-6 bg-[var(--content-bg)] backdrop-blur-sm rounded-lg shadow-lg w-full">
+            <div className="p-6 bg-stone-950/80 backdrop-blur-sm rounded-lg shadow-lg w-full">
                 <BackButton onClick={onBack} />
                 <p>Nenhuma turma selecionada.</p>
             </div>
@@ -76,10 +76,10 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
 
     if (!classData.students || classData.students.length === 0) {
         return (
-            <div className="p-6 bg-[var(--content-bg)] backdrop-blur-sm rounded-lg shadow-lg w-full">
+            <div className="p-6 bg-stone-950/80 backdrop-blur-sm rounded-lg shadow-lg w-full">
                 <BackButton onClick={onBack} />
-                <h1 className="text-3xl font-bold text-[var(--text-on-dark)]">{classData.name}</h1>
-                <p className="mt-4 text-[var(--text-secondary)]">Não há alunos nesta turma para exibir dados.</p>
+                <h1 className="text-3xl font-bold text-stone-100">{classData.name}</h1>
+                <p className="mt-4 text-stone-400">Não há alunos nesta turma para exibir dados.</p>
             </div>
         );
     }
@@ -94,9 +94,9 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
     ];
 
     const getBarColor = (percentage: number) => {
-        if (percentage >= 75) return '#4ade80'; // var(--status-win)
-        if (percentage >= 50) return '#facc15'; // var(--accent-color)
-        return '#f87171'; // var(--status-loss)
+        if (percentage >= 75) return '#4ade80'; // green-400
+        if (percentage >= 50) return '#facc15'; // yellow-500
+        return '#f87171'; // red-400
     };
     
     const sortedStudents = [...classData.students].sort((a, b) => a.name.localeCompare(b.name));
@@ -104,16 +104,16 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
 
 
     return (
-        <div className="p-4 md:p-6 bg-[var(--content-bg)] rounded-xl shadow-lg backdrop-blur-lg border border-[var(--border-color)] w-full">
+        <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full">
             <BackButton onClick={onBack} />
             <div className="flex flex-wrap items-center justify-between gap-4 -mt-6 mb-6">
                 <div className="flex items-center">
-                    <UsersIcon className="h-8 w-8 mr-3 text-[var(--accent-color)]" />
-                    <h1 className="text-3xl font-bold text-[var(--text-on-dark)]">{classData.name}</h1>
+                    <UsersIcon className="h-8 w-8 mr-3 text-yellow-600" />
+                    <h1 className="text-3xl font-bold text-stone-100">{classData.name}</h1>
                 </div>
                 <button
                     onClick={handleSave}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-[var(--btn-primary-text)] bg-[var(--btn-primary-bg)] rounded-lg hover:bg-[var(--btn-primary-hover-bg)] transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                     disabled={saveStatus !== 'idle'}
                 >
                     {saveStatus === 'idle' && <><SaveIcon className="w-5 h-5" /> Salvar Alterações</>}
@@ -123,8 +123,8 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
             </div>
 
 
-            <div className="mb-8 p-4 bg-white/5 rounded-lg border border-[var(--border-color)]">
-                <h2 className="text-xl font-bold text-[var(--text-on-dark)] mb-4">Resumo da Turma</h2>
+            <div className="mb-8 p-4 bg-white/5 rounded-lg border border-stone-800">
+                <h2 className="text-xl font-bold text-stone-100 mb-4">Resumo da Turma</h2>
                 <div style={{ width: '100%', height: 150 }}>
                     <ResponsiveContainer>
                         <BarChart data={chartData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
@@ -134,10 +134,10 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
                                 cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
                                 contentStyle={{
                                     background: 'rgba(28, 25, 23, 0.9)',
-                                    borderColor: 'var(--border-color)',
-                                    color: 'var(--text-on-light)'
+                                    borderColor: '#3f3f46',
+                                    color: '#e7e5e4'
                                 }}
-                                labelStyle={{ color: 'var(--text-secondary)' }}
+                                labelStyle={{ color: '#a8a29e' }}
                                 formatter={(value: number) => [`${value}%`, "Aproveitamento"]}
                             />
                             <Bar dataKey="aproveitamento" barSize={30}>
@@ -150,14 +150,14 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
                 </div>
             </div>
             
-            <div className="flex items-center text-sm text-[var(--text-secondary)] mb-6">
+            <div className="flex items-center text-sm text-stone-400 mb-6">
                 <CalendarIcon className="w-5 h-5 mr-2"/>
                 <span>{classData.dates.length} aulas registradas.</span>
             </div>
 
             <div className="overflow-x-auto hidden md:block">
-                <table className="w-full text-sm text-left text-[var(--text-secondary)]">
-                    <thead className="text-xs text-[var(--text-on-dark)] uppercase bg-[var(--table-header-bg)]">
+                <table className="w-full text-sm text-left text-stone-400">
+                    <thead className="text-xs text-stone-100 uppercase bg-black/20">
                         <tr>
                             <th scope="col" className="px-3 py-3 rounded-l-lg font-semibold">Aluno</th>
                             <th scope="col" className="px-2 py-3 text-center font-semibold whitespace-nowrap">Última Aula ({lastDate || 'N/A'})</th>
@@ -171,10 +171,10 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
                         {sortedStudents.map(student => {
                             const { percentage, color } = getAttendancePercentage(student);
                             return (
-                                <tr key={student.id} className="bg-white/5 border-b border-[var(--border-color)]">
-                                    <th scope="row" className="px-3 py-4 font-medium text-[var(--text-on-dark)] whitespace-nowrap">
+                                <tr key={student.id} className="bg-white/5 border-b border-stone-800">
+                                    <th scope="row" className="px-3 py-4 font-medium text-stone-100 whitespace-nowrap">
                                         <div className="flex items-baseline">
-                                            <span className="text-xs font-normal text-[var(--text-secondary)] w-8 text-left">{`${student.id}.`}</span>
+                                            <span className="text-xs font-normal text-stone-400 w-8 text-left">{`${student.id}.`}</span>
                                             <span>{student.name}</span>
                                         </div>
                                     </th>
@@ -202,8 +202,8 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
                                     <td className={`px-3 py-4 text-center font-bold ${color}`}>
                                        {percentage}%
                                     </td>
-                                    <td className="px-3 py-4 text-center font-bold" style={{color: 'var(--status-win)'}}>{totalPresences(student)}</td>
-                                    <td className="px-3 py-4 text-center font-bold" style={{color: 'var(--status-loss)'}}>{totalAbsences(student)}</td>
+                                    <td className="px-3 py-4 text-center font-bold text-green-400">{totalPresences(student)}</td>
+                                    <td className="px-3 py-4 text-center font-bold text-red-400">{totalAbsences(student)}</td>
                                 </tr>
                             );
                         })}
@@ -215,24 +215,24 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
                 {sortedStudents.map(student => {
                     const { percentage, color } = getAttendancePercentage(student);
                     return (
-                        <div key={student.id} className="bg-white/5 border border-[var(--border-color)] rounded-lg p-4 shadow">
-                            <h3 className="font-bold text-lg text-[var(--text-on-dark)] mb-3">
-                               <span className="font-medium text-[var(--text-secondary)] mr-2">{`${student.id}.`}</span>
+                        <div key={student.id} className="bg-white/5 border border-stone-800 rounded-lg p-4 shadow">
+                            <h3 className="font-bold text-lg text-stone-100 mb-3">
+                               <span className="font-medium text-stone-400 mr-2">{`${student.id}.`}</span>
                                {student.name}
                             </h3>
                             
-                            <div className="grid grid-cols-3 text-center mb-4 pb-4 border-b border-[var(--border-color)]">
+                            <div className="grid grid-cols-3 text-center mb-4 pb-4 border-b border-stone-800">
                                 <div>
                                     <div className="text-xs text-gray-400 uppercase font-semibold">Aproveitamento</div>
                                     <div className={`font-bold text-lg ${color}`}>{percentage}%</div>
                                 </div>
                                 <div>
                                     <div className="text-xs text-gray-400 uppercase font-semibold">Presenças</div>
-                                    <div className="font-bold text-lg text-[var(--status-win)]">{totalPresences(student)}</div>
+                                    <div className="font-bold text-lg text-green-400">{totalPresences(student)}</div>
                                 </div>
                                 <div>
                                     <div className="text-xs text-gray-400 uppercase font-semibold">Faltas</div>
-                                    <div className="font-bold text-lg text-[var(--status-loss)]">{totalAbsences(student)}</div>
+                                    <div className="font-bold text-lg text-red-400">{totalAbsences(student)}</div>
                                 </div>
                             </div>
 
