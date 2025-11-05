@@ -7,7 +7,7 @@ import { PlusIcon } from './icons/PlusIcon.tsx';
 import { Modal } from './Modal.tsx';
 import { PencilIcon } from './icons/PencilIcon.tsx';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
-import { XIcon } from './icons/XIcon.tsx';
+import { TrashIcon } from './icons/TrashIcon.tsx';
 
 // Props
 interface TournamentViewProps {
@@ -241,11 +241,11 @@ const MatchSchedule: React.FC<{ schedule: Match[], onUpdate: (matchIndex: number
     );
 };
 
-const GroupStage: React.FC<{ tournament: Tournament, setTournament: React.Dispatch<React.SetStateAction<Tournament | null>> }> = ({ tournament, setTournament }) => {
+const GroupStage: React.FC<{ tournament: Tournament, setTournament: React.Dispatch<React.SetStateAction<Tournament>> }> = ({ tournament, setTournament }) => {
     
     const handleUpdateResult = (groupIndex: number, matchIndex: number, newResult: MatchResult) => {
         setTournament(prev => {
-            if (!prev) return null;
+            if (!prev) return prev;
 
             const newGroups = prev.groups.map((group, gIdx) => {
                 if (gIdx !== groupIndex) return group;
@@ -319,47 +319,73 @@ const GroupStage: React.FC<{ tournament: Tournament, setTournament: React.Dispat
     );
 };
 
-export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
-    const [tournament, setTournament] = useState<Tournament | null>(() => {
-        try {
-            const saved = localStorage.getItem('tournament');
-            return saved ? JSON.parse(saved) : null;
-        } catch (e) {
-            console.error("Failed to load tournament data from localStorage", e);
-            return null;
-        }
-    });
+
+const TournamentListView: React.FC<{
+    tournaments: Tournament[];
+    onSelect: (id: string) => void;
+    onDelete: (id: string) => void;
+    onNew: () => void;
+    onBack: () => void;
+}> = ({ tournaments, onSelect, onDelete, onNew, onBack }) => {
+    return (
+        <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-4xl">
+            <BackButton onClick={onBack} />
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-8 -mt-6">
+                <h1 className="text-3xl font-bold text-stone-100">Gerenciar Torneios</h1>
+                <button onClick={onNew} className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors">
+                    <PlusIcon className="w-5 h-5" /> Criar Novo Torneio
+                </button>
+            </div>
+            {tournaments.length === 0 ? (
+                <div className="text-center py-12">
+                    <p className="text-stone-400">Nenhum torneio salvo.</p>
+                    <p className="text-stone-400">Clique em 'Criar Novo Torneio' para começar.</p>
+                </div>
+            ) : (
+                <div className="space-y-4">
+                    {tournaments.map(t => (
+                        <div key={t.id} className="bg-white/5 p-4 rounded-lg flex items-center justify-between border border-stone-800 hover:border-stone-700 transition-colors">
+                            <div>
+                                <h2 className="text-xl font-bold text-stone-100">{t.name}</h2>
+                                <p className="text-sm text-stone-400">{t.players.length} participantes</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => onDelete(t.id)} aria-label={`Excluir torneio ${t.name}`} className="p-2 text-red-400 hover:bg-red-500/20 rounded-full transition-colors">
+                                    <TrashIcon className="w-5 h-5" />
+                                </button>
+                                <button onClick={() => onSelect(t.id)} className="px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600/80 rounded-lg hover:bg-yellow-600 transition-colors">
+                                    Abrir
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
+const TournamentManagementView: React.FC<{
+    initialTournament: Tournament;
+    onUpdate: (tournament: Tournament) => void;
+    onBack: () => void;
+}> = ({ initialTournament, onUpdate, onBack }) => {
+    const [tournament, setTournament] = useState<Tournament>(initialTournament);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isEditingRules, setIsEditingRules] = useState(false);
     const [rulesText, setRulesText] = useState('');
 
     useEffect(() => {
-        try {
-            if (tournament) {
-                localStorage.setItem('tournament', JSON.stringify(tournament));
-            } else {
-                localStorage.removeItem('tournament');
-            }
-        } catch (e) {
-            console.error("Failed to save tournament data to localStorage", e);
-        }
-    }, [tournament]);
+        onUpdate(tournament);
+    }, [tournament, onUpdate]);
 
     useEffect(() => {
-        if (tournament) {
-            setRulesText(tournament.rules.join('\n'));
-        }
-    }, [tournament]);
+        setRulesText(tournament.rules.join('\n'));
+    }, [tournament.rules]);
 
-    const handleStartTournament = (name: string, playerCount: number) => {
-        const players = Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`);
-        const newTournament = createTournament(name, players);
-        setTournament(newTournament);
-    };
-    
     const handleSavePlayerNames = (nameMap: Record<string, string>) => {
         setTournament(prev => {
-            if (!prev) return null;
+            if (!prev) return prev;
             
             const updateName = (oldName: string): string => nameMap[oldName] || oldName;
 
@@ -396,7 +422,7 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
 
     const handleSaveRules = () => {
         setTournament(prev => {
-            if (!prev) return null;
+            if (!prev) return prev;
             const newRules = rulesText.split('\n').filter(rule => rule.trim() !== '');
             return { ...prev, rules: newRules };
         });
@@ -408,26 +434,11 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
         setIsEditingRules(false);
     };
 
-    const handleResetTournament = () => {
-        if (window.confirm("Tem certeza de que deseja apagar o torneio atual e começar um novo? Todo o progresso será perdido.")) {
-            setTournament(null);
-        }
-    };
-
-    if (!tournament) {
-        return (
-            <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-2xl">
-                <BackButton onClick={onBack} />
-                <TournamentSetup onStart={handleStartTournament} />
-            </div>
-        );
-    }
-
     return (
         <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-5xl">
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div>
-                    <BackButton onClick={onBack} />
+                    <BackButton onClick={onBack} text="Voltar à Lista" />
                     <div className="flex items-center gap-4">
                         <TrophyIcon className="h-10 w-10 text-yellow-600" />
                         <h1 className="text-3xl md:text-4xl font-bold text-stone-100">{tournament.name}</h1>
@@ -440,13 +451,6 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
                     >
                         <PencilIcon className="w-5 h-5" />
                         Editar Jogadores
-                    </button>
-                    <button 
-                        onClick={handleResetTournament}
-                        className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-red-300 bg-red-500/20 rounded-lg hover:bg-red-500/40 transition-colors"
-                    >
-                        <XIcon className="w-5 h-5" />
-                        Novo Torneio
                     </button>
                 </div>
             </div>
@@ -505,5 +509,113 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
                 onSave={handleSavePlayerNames}
             />
         </div>
+    );
+};
+
+export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
+    type ViewState = 'list' | 'setup' | 'manage';
+    const [view, setView] = useState<ViewState>('list');
+    const [tournaments, setTournaments] = useState<Record<string, Tournament>>({});
+    const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
+
+    useEffect(() => {
+        try {
+            const savedTournaments = localStorage.getItem('tournaments');
+            if (savedTournaments) {
+                setTournaments(JSON.parse(savedTournaments));
+            } else {
+                // Migration from old single-tournament format
+                const oldTournament = localStorage.getItem('tournament');
+                if (oldTournament) {
+                    const parsedOld = JSON.parse(oldTournament);
+                    if (parsedOld && !parsedOld.id) { // Check if it's the old format without an ID
+                        const newId = Date.now().toString();
+                        const newTournamentWithId: Tournament = { id: newId, ...parsedOld };
+                        const newTournamentsMap = { [newId]: newTournamentWithId };
+                        setTournaments(newTournamentsMap);
+                        localStorage.removeItem('tournament');
+                    }
+                }
+            }
+        } catch (e) {
+            console.error("Failed to load tournament data from localStorage", e);
+        }
+    }, []);
+
+    useEffect(() => {
+        try {
+            if (Object.keys(tournaments).length > 0) {
+                localStorage.setItem('tournaments', JSON.stringify(tournaments));
+            } else {
+                localStorage.removeItem('tournaments'); // Clean up if no tournaments left
+            }
+        } catch (e) {
+            console.error("Failed to save tournament data to localStorage", e);
+        }
+    }, [tournaments]);
+
+    const handleCreateNew = (name: string, playerCount: number) => {
+        const players = Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`);
+        // FIX: Refactor to directly use the complete tournament object returned by createTournament.
+        const newTournament = createTournament(name, players);
+        setTournaments(prev => ({ ...prev, [newTournament.id]: newTournament }));
+        setSelectedTournamentId(newTournament.id);
+        setView('manage');
+    };
+
+    const handleSelectTournament = (id: string) => {
+        setSelectedTournamentId(id);
+        setView('manage');
+    };
+
+    const handleDeleteTournament = (id: string) => {
+        if (window.confirm("Tem certeza que deseja excluir este torneio? Esta ação não pode ser desfeita.")) {
+            setTournaments(prev => {
+                const newTournaments = { ...prev };
+                delete newTournaments[id];
+                return newTournaments;
+            });
+        }
+    };
+
+    const handleUpdateTournament = (updatedTournament: Tournament) => {
+        setTournaments(prev => ({
+            ...prev,
+            [updatedTournament.id]: updatedTournament,
+        }));
+    };
+
+    const handleBackToList = () => {
+        setSelectedTournamentId(null);
+        setView('list');
+    };
+
+    if (view === 'setup') {
+        return (
+            <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-2xl">
+                <BackButton onClick={() => setView('list')} />
+                <TournamentSetup onStart={handleCreateNew} />
+            </div>
+        );
+    }
+
+    if (view === 'manage' && selectedTournamentId) {
+        const selectedTournament = tournaments[selectedTournamentId];
+        return <TournamentManagementView
+            initialTournament={selectedTournament}
+            onUpdate={handleUpdateTournament}
+            onBack={handleBackToList}
+        />;
+    }
+
+    return (
+        <TournamentListView
+            // FIX: Explicitly type the sort function parameters to resolve the 'unknown' type error.
+            tournaments={Object.values(tournaments).sort((a: Tournament, b: Tournament) => b.id.localeCompare(a.id))}
+            onSelect={handleSelectTournament}
+            onDelete={handleDeleteTournament}
+            onNew={() => setView('setup')}
+            onBack={onBack}
+        />
     );
 };

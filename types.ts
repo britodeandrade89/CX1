@@ -60,6 +60,7 @@ export interface Group {
 }
 
 export interface Tournament {
+    id: string;
     name: string;
     players: string[];
     groups: Group[];
@@ -165,4 +166,11 @@ export interface CheckmateExercise {
         comment: string;
     };
     description: string;
+}
+
+// GitHub Sync types
+export interface GithubConfig {
+    username: string;
+    repo: string;
+    token: string;
 }

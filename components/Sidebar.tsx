@@ -10,11 +10,13 @@ import { KnightIcon } from './icons/KnightIcon.tsx';
 import { ChessIcon } from './icons/ChessIcon.tsx';
 import { LogoutIcon } from './icons/LogoutIcon.tsx';
 import { XIcon } from './icons/XIcon.tsx';
+import { CloudIcon } from './icons/CloudIcon.tsx';
 
 
 interface SidebarProps {
     setView: (view: string) => void;
     onLogout: () => void;
+    onSaveToCloud: () => void;
     isOpen: boolean;
     onClose: () => void;
 }
@@ -26,7 +28,7 @@ const NavItem: React.FC<{ icon: React.ReactNode; label: string; onClick: () => v
     </button>
 );
 
-export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, onSaveToCloud, isOpen, onClose }) => {
     return (
         <>
             <aside className={`fixed md:relative z-50 md:z-auto h-full bg-stone-900/90 backdrop-blur-lg border-r border-stone-800 w-64 flex-shrink-0 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
@@ -51,7 +53,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, isOpen, onC
                     <NavItem icon={<ChessIcon className="w-full h-full" />} label="Jogar" onClick={() => setView('play-game')} />
                 </nav>
 
-                <div className="p-4 border-t border-stone-800">
+                <div className="p-4 border-t border-stone-800 space-y-2">
+                    <NavItem icon={<CloudIcon className="w-full h-full" />} label="Salvar na Nuvem" onClick={onSaveToCloud} />
                     <NavItem icon={<LogoutIcon className="w-full h-full" />} label="Sair" onClick={onLogout} />
                 </div>
             </aside>

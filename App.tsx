@@ -10,14 +10,16 @@ import { AlgebraicNotationView } from './components/AlgebraicNotationView';
 import { CheckmateExercisesView } from './components/CheckmateExercisesView';
 import { EmentaView } from './components/EmentaView';
 import { ActivityLogView } from './components/ActivityLogView';
-import { PlayGameView } from './components/PlayGameView'; // Import the new view
+import { PlayGameView } from './components/PlayGameView';
 import { LoginView } from './components/LoginView';
 import { Background } from './components/Background';
 import { HamburgerIcon } from './components/icons/HamburgerIcon';
 import { XIcon } from './components/icons/XIcon';
-import type { ClassDataMap, ClassificationDataMap, ActivityLogData } from './types';
+import type { ClassDataMap, ClassificationDataMap, ActivityLogData, GithubConfig } from './types';
 import { initialClassData, initialClassificationData } from './constants';
 import { activityLogData as initialActivityLogData } from './activityLogData';
+import { GitHubSyncModal } from './components/GitHubSyncModal';
+import { saveDataToGithub, loadDataFromGithub } from './services/githubService';
 
 type View =
   | 'welcome'
@@ -30,7 +32,7 @@ type View =
   | 'checkmate-exercises'
   | 'ementa'
   | 'activity-log'
-  | 'play-game'; // Add the new view type
+  | 'play-game';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -40,6 +42,9 @@ const App: React.FC = () => {
     const [classificationData, setClassificationData] = useState<ClassificationDataMap>({});
     const [activityLog, setActivityLog] = useState<ActivityLogData>(initialActivityLogData);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+    const [githubConfig, setGithubConfig] = useState<GithubConfig | null>(null);
+
 
     useEffect(() => {
         const loggedIn = localStorage.getItem('isAuthenticated');
@@ -47,14 +52,9 @@ const App: React.FC = () => {
             setIsAuthenticated(true);
         }
 
-        // Robust data loading from localStorage
         try {
             const savedClassData = localStorage.getItem('classData');
-            if (savedClassData) {
-                setClassData(JSON.parse(savedClassData));
-            } else {
-                setClassData(initialClassData);
-            }
+            setClassData(savedClassData ? JSON.parse(savedClassData) : initialClassData);
         } catch (error) {
             console.error("Failed to load class data, falling back to initial data.", error);
             setClassData(initialClassData);
@@ -62,11 +62,7 @@ const App: React.FC = () => {
 
         try {
             const savedClassificationData = localStorage.getItem('classificationData');
-            if (savedClassificationData) {
-                setClassificationData(JSON.parse(savedClassificationData));
-            } else {
-                setClassificationData(initialClassificationData);
-            }
+            setClassificationData(savedClassificationData ? JSON.parse(savedClassificationData) : initialClassificationData);
         } catch (error) {
             console.error("Failed to load classification data, falling back to initial data.", error);
             setClassificationData(initialClassificationData);
@@ -74,14 +70,19 @@ const App: React.FC = () => {
         
         try {
             const savedActivityLog = localStorage.getItem('activityLogData');
-            if (savedActivityLog) {
-                setActivityLog(JSON.parse(savedActivityLog));
-            } else {
-                setActivityLog(initialActivityLogData);
-            }
+            setActivityLog(savedActivityLog ? JSON.parse(savedActivityLog) : initialActivityLogData);
         } catch (error) {
             console.error("Failed to load activity log, falling back to initial data.", error);
             setActivityLog(initialActivityLogData);
+        }
+
+        try {
+            const savedGithubConfig = localStorage.getItem('githubConfig');
+            if (savedGithubConfig) {
+                setGithubConfig(JSON.parse(savedGithubConfig));
+            }
+        } catch (error) {
+            console.error("Failed to load github config.", error);
         }
 
     }, []);
@@ -96,6 +97,67 @@ const App: React.FC = () => {
         setIsAuthenticated(false);
         setView('welcome');
     };
+    
+    const handleSaveConfig = (config: GithubConfig) => {
+        setGithubConfig(config);
+        localStorage.setItem('githubConfig', JSON.stringify(config));
+        setIsGithubModalOpen(false);
+        alert('Configuração salva com sucesso! Agora você pode salvar seus dados na nuvem.');
+    };
+
+    const handleTriggerSync = async () => {
+        if (!githubConfig || !githubConfig.token) {
+            setIsGithubModalOpen(true);
+            return;
+        }
+
+        const tournaments = JSON.parse(localStorage.getItem('tournaments') || '{}');
+
+        const allData = {
+            classData,
+            classificationData,
+            activityLog,
+            tournaments,
+        };
+
+        try {
+            await saveDataToGithub(githubConfig, allData);
+            alert('Backup realizado com sucesso no seu repositório do GitHub!');
+        } catch (error) {
+            console.error(error);
+            alert(`Falha ao salvar no GitHub: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+    };
+
+    const handleLoadFromCloud = async (config: GithubConfig) => {
+        if (!window.confirm("Isso substituirá todos os seus dados locais pelos dados do GitHub. Deseja continuar?")) {
+            return;
+        }
+
+        try {
+            const data = await loadDataFromGithub(config);
+            if (data) {
+                // Update state
+                setClassData(data.classData);
+                setClassificationData(data.classificationData);
+                setActivityLog(data.activityLog);
+
+                // Update localStorage
+                localStorage.setItem('classData', JSON.stringify(data.classData));
+                localStorage.setItem('classificationData', JSON.stringify(data.classificationData));
+                localStorage.setItem('activityLogData', JSON.stringify(data.activityLog));
+                localStorage.setItem('tournaments', JSON.stringify(data.tournaments));
+                
+                setIsGithubModalOpen(false);
+                alert('Dados carregados com sucesso! O aplicativo será recarregado.');
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error(error);
+            alert(`Falha ao carregar dados do GitHub: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+        }
+    };
+
 
     const handleUpdateAttendance = (classId: string, studentId: number, date: string, status: 'P' | 'F') => {
         setClassData(prevData => {
@@ -199,6 +261,7 @@ const App: React.FC = () => {
                     setIsSidebarOpen(false);
                 }}
                 onLogout={handleLogout}
+                onSaveToCloud={handleTriggerSync}
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
             />
@@ -206,6 +269,14 @@ const App: React.FC = () => {
             <main className="flex-1 p-4 md:p-6 flex justify-center items-start overflow-y-auto mt-16 md:mt-0">
                 {renderView()}
             </main>
+            
+            <GitHubSyncModal
+                isOpen={isGithubModalOpen}
+                onClose={() => setIsGithubModalOpen(false)}
+                onSave={handleSaveConfig}
+                onLoad={handleLoadFromCloud}
+                currentConfig={githubConfig}
+            />
         </div>
     );
 };

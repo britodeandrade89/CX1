@@ -96,6 +96,8 @@ export function createTournament(tournamentName: string, playerNames: string[]):
     ];
 
     return {
+        // FIX: Added missing 'id' property to align with the Tournament type.
+        id: Date.now().toString(),
         name: tournamentName,
         players: playerNames,
         groups,
