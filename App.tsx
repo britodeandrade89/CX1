@@ -78,8 +78,14 @@ const loadDataFromFirebase = async (): Promise<AppData | null> => {
         }
         console.log("No data found in Firebase.");
         return null;
-    } catch (error) {
-        console.error("Error loading data from Firebase:", error);
+    } catch (error: any) {
+        // Gracefully handle offline errors, which are expected.
+        // The Firestore SDK throws 'unavailable' when offline and the document isn't in the cache.
+        if (error.code === 'unavailable') {
+            console.log("Client is offline. Firebase data could not be fetched from the server.");
+        } else {
+            console.error("Error loading data from Firebase:", error);
+        }
         return null;
     }
 };
