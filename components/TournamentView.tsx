@@ -8,6 +8,7 @@ import { Modal } from './Modal.tsx';
 import { PencilIcon } from './icons/PencilIcon.tsx';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 import { TrashIcon } from './icons/TrashIcon.tsx';
+import { NextMatches } from './NextMatches.tsx';
 
 interface TournamentViewProps {
     onBack: () => void;
@@ -170,7 +171,7 @@ const PlayerRanking: React.FC<{ players: PlayerStats[], schedule: Match[] }> = (
     );
 };
 
-const MatchRow: React.FC<{ match: Match, onUpdate: (result: MatchResult) => void }> = ({ match, onUpdate }) => {
+export const MatchRow: React.FC<{ match: Match, onUpdate: (result: MatchResult) => void }> = ({ match, onUpdate }) => {
     if (match.player1 === 'BYE' || match.player2 === 'BYE') {
         const playingPlayer = match.player1 === 'BYE' ? match.player2 : match.player1;
         return (
@@ -307,15 +308,39 @@ const GroupStage: React.FC<{ tournament: Tournament, setTournament: React.Dispat
         });
     };
 
+    const getNextMatchesForGroup = (group: Group) => {
+        const pendingMatches = group.schedule.filter(m => m.result === null);
+        if (pendingMatches.length === 0) {
+            return { round: 0, matches: [] };
+        }
+        const nextRoundNumber = Math.min(...pendingMatches.map(m => m.round));
+        const nextMatches = group.schedule
+            .map((match, index) => ({ ...match, originalIndex: index }))
+            .filter(m => m.round === nextRoundNumber && m.result === null);
+        
+        return { round: nextRoundNumber, matches: nextMatches };
+    };
+
     return (
         <>
-            {tournament.groups.map((group, groupIndex) => (
-                <div key={group.name} className="mb-12">
-                    <h2 className="text-2xl font-bold text-yellow-600 mb-6 pb-2 border-b-2 border-stone-800">{group.name}</h2>
-                    <PlayerRanking players={group.players} schedule={group.schedule} />
-                    <MatchSchedule schedule={group.schedule} onUpdate={(matchIndex, result) => handleUpdateResult(groupIndex, matchIndex, result)} />
-                </div>
-            ))}
+            {tournament.groups.map((group, groupIndex) => {
+                const { round: nextRound, matches: nextMatches } = getNextMatchesForGroup(group);
+
+                return (
+                    <div key={group.name} className="mb-12">
+                        <h2 className="text-2xl font-bold text-yellow-600 mb-6 pb-2 border-b-2 border-stone-800">{group.name}</h2>
+                        
+                        <NextMatches 
+                            round={nextRound}
+                            matches={nextMatches}
+                            onUpdate={(matchIndex, result) => handleUpdateResult(groupIndex, matchIndex, result)}
+                        />
+
+                        <PlayerRanking players={group.players} schedule={group.schedule} />
+                        <MatchSchedule schedule={group.schedule} onUpdate={(matchIndex, result) => handleUpdateResult(groupIndex, matchIndex, result)} />
+                    </div>
+                );
+            })}
         </>
     );
 };

@@ -119,65 +119,61 @@ const App: React.FC = () => {
     const debounceTimer = useRef<number | null>(null);
     const isInitialMount = useRef(true);
 
+    const initializeAppData = async () => {
+        setSyncStatus('loading');
+
+        // --- INSTANT LOAD from Local Storage or Initial Data ---
+        try {
+            const localClassData = JSON.parse(localStorage.getItem('classData') || 'null');
+            const localClassificationData = JSON.parse(localStorage.getItem('classificationData') || 'null');
+            const localActivityLog = JSON.parse(localStorage.getItem('activityLogData') || 'null');
+            const localTournaments = JSON.parse(localStorage.getItem('tournaments') || 'null');
+
+            // Fallback to initial data if local is empty or doesn't exist
+            setClassData(localClassData && Object.keys(localClassData).length > 0 ? localClassData : initialClassData);
+            setClassificationData(localClassificationData && Object.keys(localClassificationData).length > 0 ? localClassificationData : initialClassificationData);
+            setActivityLog(localActivityLog || initialActivityLogData);
+            setTournaments(localTournaments || {});
+            console.log("Instantly loaded data from local storage or initial constants.");
+        } catch (error) {
+            console.error("Failed to parse local storage, falling back to initial data.", error);
+            setClassData(initialClassData);
+            setClassificationData(initialClassificationData);
+            setActivityLog(initialActivityLogData);
+            setTournaments({});
+        }
+
+        // --- BACKGROUND SYNC with Firebase ---
+        try {
+            const firebaseData = await loadDataFromFirebase();
+            if (firebaseData) {
+                const { classData: fbClass, classificationData: fbClassification, activityLog: fbLog, tournaments: fbTournaments } = firebaseData;
+
+                // Only overwrite local state if Firebase data is valid and non-empty.
+                if (fbClass && Object.keys(fbClass).length > 0) {
+                    setClassData(fbClass);
+                }
+                if (fbClassification && Object.keys(fbClassification).length > 0) {
+                    setClassificationData(fbClassification);
+                }
+                setActivityLog(fbLog || initialActivityLogData);
+                setTournaments(fbTournaments || {});
+                console.log("Successfully synced with Firebase.");
+            } else {
+                console.log("No data found in Firebase. Using local/initial data. It will be saved on the next change.");
+            }
+            setSyncStatus('synced');
+        } catch (error) {
+            console.error("Firebase sync failed:", error);
+            setSyncStatus('error');
+        }
+    };
+
     useEffect(() => {
         const loggedIn = localStorage.getItem('isAuthenticated');
         if (loggedIn === 'true') {
             setIsAuthenticated(true);
-            setSyncStatus('loading');
-
-            // --- INSTANT LOAD from Local Storage or Initial Data ---
-            const loadInstantData = () => {
-                try {
-                    const localClassData = JSON.parse(localStorage.getItem('classData') || 'null');
-                    const localClassificationData = JSON.parse(localStorage.getItem('classificationData') || 'null');
-                    const localActivityLog = JSON.parse(localStorage.getItem('activityLogData') || 'null');
-                    const localTournaments = JSON.parse(localStorage.getItem('tournaments') || 'null');
-
-                    // Fallback to initial data if local is empty or doesn't exist
-                    setClassData(localClassData && Object.keys(localClassData).length > 0 ? localClassData : initialClassData);
-                    setClassificationData(localClassificationData && Object.keys(localClassificationData).length > 0 ? localClassificationData : initialClassificationData);
-                    setActivityLog(localActivityLog || initialActivityLogData);
-                    setTournaments(localTournaments || {});
-                    console.log("Instantly loaded data from local storage or initial constants.");
-                } catch (error) {
-                    console.error("Failed to parse local storage, falling back to initial data.", error);
-                    setClassData(initialClassData);
-                    setClassificationData(initialClassificationData);
-                    setActivityLog(initialActivityLogData);
-                    setTournaments({});
-                }
-            };
-            
-            loadInstantData();
-
-            // --- BACKGROUND SYNC with Firebase ---
-            const syncWithFirebase = async () => {
-                const firebaseData = await loadDataFromFirebase();
-                if (firebaseData) {
-                    const { classData: fbClass, classificationData: fbClassification, activityLog: fbLog, tournaments: fbTournaments } = firebaseData;
-
-                    // Only overwrite local state if Firebase data is valid and non-empty.
-                    // This prevents an empty cloud save from erasing a user's local data.
-                    if (fbClass && Object.keys(fbClass).length > 0) {
-                        setClassData(fbClass);
-                    }
-                    if (fbClassification && Object.keys(fbClassification).length > 0) {
-                        setClassificationData(fbClassification);
-                    }
-                    setActivityLog(fbLog || initialActivityLogData);
-                    setTournaments(fbTournaments || {});
-                    console.log("Successfully synced with Firebase.");
-                } else {
-                    console.log("No data found in Firebase. Using local/initial data. It will be saved on the next change.");
-                }
-                setSyncStatus('synced');
-            };
-
-            syncWithFirebase().catch(error => {
-                console.error("Firebase sync failed:", error);
-                setSyncStatus('error');
-            });
-
+            initializeAppData();
         } else {
             setSyncStatus('idle');
             setIsAuthenticated(false);
@@ -224,13 +220,19 @@ const App: React.FC = () => {
 
     const handleLoginSuccess = () => {
         localStorage.setItem('isAuthenticated', 'true');
-        window.location.reload(); // Reload to trigger initial data load correctly
+        setIsAuthenticated(true);
+        initializeAppData();
     };
 
     const handleLogout = () => {
         localStorage.removeItem('isAuthenticated');
         setIsAuthenticated(false);
         setView('welcome');
+        // Reset state to prevent data flashing for the next user
+        setClassData({});
+        setClassificationData({});
+        setActivityLog(initialActivityLogData);
+        setTournaments({});
     };
     
     const handleUpdateAttendance = (classId: string, studentId: number, date: string, status: 'P' | 'F') => {
