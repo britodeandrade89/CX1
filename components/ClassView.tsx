@@ -1,42 +1,25 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ClassData, Student } from '../types.ts';
 import { BackButton } from './BackButton.tsx';
 import { UsersIcon } from './icons/UsersIcon.tsx';
 import { CalendarIcon } from './icons/CalendarIcon.tsx';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { SaveIcon } from './icons/SaveIcon.tsx';
-
 
 interface ClassViewProps {
     classId: string;
     classData: ClassData;
     onBack: () => void;
     onUpdate: (classId: string, studentId: number, date: string, status: 'P' | 'F') => void;
-    onSave: () => boolean;
 }
 
-export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack, onUpdate, onSave }) => {
+export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack, onUpdate }) => {
     const today = new Date();
     const todayDate = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(today).replace('.', '');
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-
 
     const handleSetAttendance = (studentId: number, status: 'P' | 'F') => {
         onUpdate(classId, studentId, todayDate, status);
     };
 
-    const handleSave = () => {
-        setSaveStatus('saving');
-        const success = onSave();
-        if (success) {
-            setSaveStatus('saved');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        } else {
-            setSaveStatus('idle');
-            alert('Falha ao salvar os dados.');
-        }
-    };
-    
     const totalPresences = (student: Student) => {
         return Object.values(student.attendance).filter(status => status === 'P').length;
     };
@@ -111,15 +94,6 @@ export const ClassView: React.FC<ClassViewProps> = ({ classId, classData, onBack
                     <UsersIcon className="h-8 w-8 mr-3 text-yellow-600" />
                     <h1 className="text-3xl font-bold text-stone-100">{classData.name}</h1>
                 </div>
-                <button
-                    onClick={handleSave}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                    disabled={saveStatus !== 'idle'}
-                >
-                    {saveStatus === 'idle' && <><SaveIcon className="w-5 h-5" /> Salvar Alterações</>}
-                    {saveStatus === 'saving' && 'Salvando...'}
-                    {saveStatus === 'saved' && 'Salvo!'}
-                </button>
             </div>
 
 

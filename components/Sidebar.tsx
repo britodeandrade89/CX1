@@ -12,13 +12,14 @@ import { LogoutIcon } from './icons/LogoutIcon.tsx';
 import { XIcon } from './icons/XIcon.tsx';
 import { CloudIcon } from './icons/CloudIcon.tsx';
 
+type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
 
 interface SidebarProps {
     setView: (view: string) => void;
     onLogout: () => void;
-    onSaveToCloud: () => void;
     isOpen: boolean;
     onClose: () => void;
+    syncStatus: SyncStatus;
 }
 
 const NavItem: React.FC<{ icon: React.ReactNode; label: string; onClick: () => void; }> = ({ icon, label, onClick }) => (
@@ -28,7 +29,39 @@ const NavItem: React.FC<{ icon: React.ReactNode; label: string; onClick: () => v
     </button>
 );
 
-export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, onSaveToCloud, isOpen, onClose }) => {
+const SyncStatusIndicator: React.FC<{ status: SyncStatus }> = ({ status }) => {
+    let text;
+    let colorClass;
+
+    switch (status) {
+        case 'syncing':
+            text = 'Sincronizando...';
+            colorClass = 'text-yellow-400';
+            break;
+        case 'synced':
+            text = 'Salvo na nuvem';
+            colorClass = 'text-green-400';
+            break;
+        case 'error':
+            text = 'Erro de sincronização';
+            colorClass = 'text-red-400';
+            break;
+        default:
+            return <div className="px-4 py-3 h-[42px]"></div>; // Placeholder for consistent height
+    }
+
+    return (
+        <div className={`flex items-center w-full px-4 py-3 text-sm font-medium text-left ${colorClass}`}>
+            <div className="w-6 h-6 mr-4">
+                <CloudIcon className="w-full h-full" />
+            </div>
+            <span>{text}</span>
+        </div>
+    );
+};
+
+
+export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, isOpen, onClose, syncStatus }) => {
     return (
         <>
             <aside className={`fixed md:relative z-50 md:z-auto h-full bg-stone-900/90 backdrop-blur-lg border-r border-stone-800 w-64 flex-shrink-0 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
@@ -54,7 +87,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, onSaveToClo
                 </nav>
 
                 <div className="p-4 border-t border-stone-800 space-y-2">
-                    <NavItem icon={<CloudIcon className="w-full h-full" />} label="Salvar na Nuvem" onClick={onSaveToCloud} />
+                    <SyncStatusIndicator status={syncStatus} />
                     <NavItem icon={<LogoutIcon className="w-full h-full" />} label="Sair" onClick={onLogout} />
                 </div>
             </aside>

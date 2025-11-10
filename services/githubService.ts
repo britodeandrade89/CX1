@@ -24,30 +24,32 @@ export const saveDataToGithub = async (config: GithubConfig, data: object) => {
     const headers = {
         'Authorization': `token ${token}`,
         'Accept': 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
     };
 
     let sha: string | undefined;
 
     // First, try to get the file to see if it exists and get its SHA
     try {
-        const existingFile = await fetch(url, { headers });
-        if (existingFile.ok) {
-            const fileData = await existingFile.json();
+        const existingFileResponse = await fetch(url, { headers });
+        if (existingFileResponse.ok) {
+            const fileData = await existingFileResponse.json();
             sha = fileData.sha;
-        } else if (existingFile.status !== 404) {
-            // If it's not a 404, it's an unexpected error
-            await handleResponse(existingFile);
+        } else if (existingFileResponse.status !== 404) {
+            // It's a real error (401, 403, etc.), so we should fail fast.
+            await handleResponse(existingFileResponse);
         }
+        // If status is 404, we do nothing and proceed, sha remains undefined.
     } catch (error) {
-        // Ignore fetch error if it's just about the file not existing, otherwise rethrow
-        if (error instanceof Error && !error.message.includes('Failed to fetch')) {
-            console.error("Error checking for existing file:", error);
-        }
+        console.error("Error checking for existing file on GitHub:", error);
+        // Rethrow to be caught by the UI and display an alert
+        throw error; 
     }
 
     // Prepare the content for upload
-    const content = btoa(JSON.stringify(data, null, 2)); // btoa encodes to Base64
+    const jsonString = JSON.stringify(data, null, 2);
+    // Properly encode UTF-8 string to Base64 to handle special characters
+    const content = btoa(unescape(encodeURIComponent(jsonString)));
+    
     const body = JSON.stringify({
         message: `Backup automático do Clube do Xadrez - ${new Date().toISOString()}`,
         content: content,
@@ -57,7 +59,10 @@ export const saveDataToGithub = async (config: GithubConfig, data: object) => {
     // Create or update the file
     const response = await fetch(url, {
         method: 'PUT',
-        headers,
+        headers: {
+            ...headers,
+            'Content-Type': 'application/json' // FIX: Added missing Content-Type header
+        },
         body
     });
 
@@ -83,7 +88,9 @@ export const loadDataFromGithub = async (config: GithubConfig): Promise<any> => 
     const data = await handleResponse(response);
 
     if (data.content) {
-        const decodedContent = atob(data.content); // atob decodes from Base64
+        // Properly decode Base64 string to UTF-8 to handle special characters
+        const base64Decoded = atob(data.content);
+        const decodedContent = decodeURIComponent(escape(base64Decoded));
         return JSON.parse(decodedContent);
     }
     

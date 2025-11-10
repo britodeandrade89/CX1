@@ -9,9 +9,10 @@ import { PencilIcon } from './icons/PencilIcon.tsx';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 import { TrashIcon } from './icons/TrashIcon.tsx';
 
-// Props
 interface TournamentViewProps {
     onBack: () => void;
+    tournaments: Record<string, Tournament>;
+    setTournaments: React.Dispatch<React.SetStateAction<Record<string, Tournament>>>;
 }
 
 const TournamentSetup: React.FC<{ onStart: (name: string, playerCount: number) => void }> = ({ onStart }) => {
@@ -366,18 +367,13 @@ const TournamentListView: React.FC<{
 };
 
 const TournamentManagementView: React.FC<{
-    initialTournament: Tournament;
-    onUpdate: (tournament: Tournament) => void;
+    tournament: Tournament;
+    setTournament: React.Dispatch<React.SetStateAction<Tournament>>;
     onBack: () => void;
-}> = ({ initialTournament, onUpdate, onBack }) => {
-    const [tournament, setTournament] = useState<Tournament>(initialTournament);
+}> = ({ tournament, setTournament, onBack }) => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [isEditingRules, setIsEditingRules] = useState(false);
     const [rulesText, setRulesText] = useState('');
-
-    useEffect(() => {
-        onUpdate(tournament);
-    }, [tournament, onUpdate]);
 
     useEffect(() => {
         setRulesText(tournament.rules.join('\n'));
@@ -512,59 +508,21 @@ const TournamentManagementView: React.FC<{
     );
 };
 
-export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
+export const TournamentView: React.FC<TournamentViewProps> = ({ onBack, tournaments, setTournaments }) => {
     type ViewState = 'list' | 'setup' | 'manage';
     const [view, setView] = useState<ViewState>('list');
-    const [tournaments, setTournaments] = useState<Record<string, Tournament>>({});
-    const [selectedTournamentId, setSelectedTournamentId] = useState<string | null>(null);
-
-    useEffect(() => {
-        try {
-            const savedTournaments = localStorage.getItem('tournaments');
-            if (savedTournaments) {
-                setTournaments(JSON.parse(savedTournaments));
-            } else {
-                // Migration from old single-tournament format
-                const oldTournament = localStorage.getItem('tournament');
-                if (oldTournament) {
-                    const parsedOld = JSON.parse(oldTournament);
-                    if (parsedOld && !parsedOld.id) { // Check if it's the old format without an ID
-                        const newId = Date.now().toString();
-                        const newTournamentWithId: Tournament = { id: newId, ...parsedOld };
-                        const newTournamentsMap = { [newId]: newTournamentWithId };
-                        setTournaments(newTournamentsMap);
-                        localStorage.removeItem('tournament');
-                    }
-                }
-            }
-        } catch (e) {
-            console.error("Failed to load tournament data from localStorage", e);
-        }
-    }, []);
-
-    useEffect(() => {
-        try {
-            if (Object.keys(tournaments).length > 0) {
-                localStorage.setItem('tournaments', JSON.stringify(tournaments));
-            } else {
-                localStorage.removeItem('tournaments'); // Clean up if no tournaments left
-            }
-        } catch (e) {
-            console.error("Failed to save tournament data to localStorage", e);
-        }
-    }, [tournaments]);
+    const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
 
     const handleCreateNew = (name: string, playerCount: number) => {
         const players = Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`);
-        // FIX: Refactor to directly use the complete tournament object returned by createTournament.
         const newTournament = createTournament(name, players);
         setTournaments(prev => ({ ...prev, [newTournament.id]: newTournament }));
-        setSelectedTournamentId(newTournament.id);
+        setSelectedTournament(newTournament);
         setView('manage');
     };
 
     const handleSelectTournament = (id: string) => {
-        setSelectedTournamentId(id);
+        setSelectedTournament(tournaments[id]);
         setView('manage');
     };
 
@@ -577,16 +535,17 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
             });
         }
     };
-
-    const handleUpdateTournament = (updatedTournament: Tournament) => {
+    
+    const handleUpdateSelectedTournament = (updatedTournament: Tournament) => {
         setTournaments(prev => ({
             ...prev,
             [updatedTournament.id]: updatedTournament,
         }));
-    };
+        setSelectedTournament(updatedTournament);
+    }
 
     const handleBackToList = () => {
-        setSelectedTournamentId(null);
+        setSelectedTournament(null);
         setView('list');
     };
 
@@ -599,18 +558,16 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack }) => {
         );
     }
 
-    if (view === 'manage' && selectedTournamentId) {
-        const selectedTournament = tournaments[selectedTournamentId];
+    if (view === 'manage' && selectedTournament) {
         return <TournamentManagementView
-            initialTournament={selectedTournament}
-            onUpdate={handleUpdateTournament}
+            tournament={selectedTournament}
+            setTournament={handleUpdateSelectedTournament}
             onBack={handleBackToList}
         />;
     }
 
     return (
         <TournamentListView
-            // FIX: Explicitly type the sort function parameters to resolve the 'unknown' type error.
             tournaments={Object.values(tournaments).sort((a: Tournament, b: Tournament) => b.id.localeCompare(a.id))}
             onSelect={handleSelectTournament}
             onDelete={handleDeleteTournament}

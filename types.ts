@@ -168,7 +168,7 @@ export interface CheckmateExercise {
     description: string;
 }
 
-// GitHub Sync types
+// FIX: Added missing GithubConfig type for GitHub synchronization feature.
 export interface GithubConfig {
     username: string;
     repo: string;

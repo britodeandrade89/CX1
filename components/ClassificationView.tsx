@@ -5,7 +5,6 @@ import { CrownIcon } from './icons/CrownIcon.tsx';
 import { SparklesIcon } from './icons/SparklesIcon.tsx';
 import { Modal } from './Modal.tsx';
 import { analyzePlayer } from '../services/geminiService.ts';
-import { SaveIcon } from './icons/SaveIcon.tsx';
 
 interface EditableStatProps {
     value: number;
@@ -37,27 +36,13 @@ interface ClassificationViewProps {
     classificationData: ClassificationData;
     onBack: () => void;
     onUpdate: (classId: string, studentIndex: number, newStats: { wins: number; draws: number; losses: number }) => void;
-    onSave: () => boolean;
 }
 
-export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId, classificationData, onBack, onUpdate, onSave }) => {
+export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId, classificationData, onBack, onUpdate }) => {
     const [isAnalysisModalOpen, setIsAnalysisModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState<ClassificationStudent | null>(null);
     const [analysisResult, setAnalysisResult] = useState('');
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
-
-    const handleSave = () => {
-        setSaveStatus('saving');
-        const success = onSave();
-        if (success) {
-            setSaveStatus('saved');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        } else {
-            setSaveStatus('idle');
-            alert('Falha ao salvar os dados.');
-        }
-    };
 
     const handleOpenAnalysis = async (student: ClassificationStudent) => {
         setSelectedStudent(student);
@@ -114,15 +99,6 @@ export const ClassificationView: React.FC<ClassificationViewProps> = ({ classId,
                     <BackButton onClick={onBack} />
                     <h1 className="text-3xl font-bold text-stone-100 -mt-6">{classificationData.name}</h1>
                  </div>
-                <button
-                    onClick={handleSave}
-                    className="flex items-center gap-2 px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
-                    disabled={saveStatus !== 'idle'}
-                >
-                    {saveStatus === 'idle' && <><SaveIcon className="w-5 h-5" /> Salvar Alterações</>}
-                    {saveStatus === 'saving' && 'Salvando...'}
-                    {saveStatus === 'saved' && 'Salvo!'}
-                </button>
             </div>
             
             <div className="mt-6 overflow-x-auto hidden md:block">
