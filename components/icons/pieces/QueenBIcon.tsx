@@ -1,5 +1,18 @@
 import React from 'react';
 
 export const QueenBIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}><g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><g fill="#000" strokeLinecap="butt"><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(18)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(7)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(29.5)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(2.5)" /><path d="M8 12a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" transform="translate(12.5)" /></g><path d="M9 26c8.5-1.5 21-1.5 27 0l2-12-7-2.5-3 4.5-5-3-5 3-3-4.5-7 2.5z" fill="#000" /><path d="M9 26c0 2 1.5 4 4 4h15c2.5 0 4-2 4-4 0 4 1.5 8 4 8s4-4 4-8-1.5-8-4-8-4 4-4 8" strokeLinecap="butt" /><path d="M11 30h24" strokeLinecap="butt" /><path d="M11 34h24" strokeLinecap="butt" /><path d="M12 38h22" strokeLinecap="butt" /><path d="M12 42h22" strokeLinecap="butt" /></g></svg>
+    <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <g fill="#000" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M 8,12 A 2.5,2.5 0 1,1 3,12 A 2.5,2.5 0 1,1 8,12 Z" transform="translate(14.5, -2)" />
+            <path d="M 8,12 A 2.5,2.5 0 1,1 3,12 A 2.5,2.5 0 1,1 8,12 Z" transform="translate(26.5, -2)" />
+            <path d="M 8,12 A 2.5,2.5 0 1,1 3,12 A 2.5,2.5 0 1,1 8,12 Z" transform="translate(8.5, -2)" />
+            <path d="M 8,12 A 2.5,2.5 0 1,1 3,12 A 2.5,2.5 0 1,1 8,12 Z" transform="translate(20.5, -2)" />
+            <path d="M 8,12 A 2.5,2.5 0 1,1 3,12 A 2.5,2.5 0 1,1 8,12 Z" transform="translate(2.5, -2)" />
+            <path d="M 9,26 C 17.5,24.5 27.5,24.5 36,26 L 38,14 L 31,11.5 L 28,16 L 22.5,13 L 17,16 L 14,11.5 L 7,14 L 9,26 z" />
+            <path d="M 9,26 C 9,28 10.5,30 13,30 L 32,30 C 34.5,30 36,28 36,26" />
+            <path d="M 11,38.5 L 34,38.5" />
+            <path d="M 11,30 L 11,38.5" />
+            <path d="M 34,30 L 34,38.5" />
+        </g>
+    </svg>
 );
