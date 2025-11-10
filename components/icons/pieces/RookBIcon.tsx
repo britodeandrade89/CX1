@@ -1,5 +1,10 @@
 import React from 'react';
 
 export const RookBIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}><g fill="#000" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 39h27v-3H9v3zM12.5 32l1.5-2.5h17l1.5 2.5h-20zM12 36v-4h21v4H12z" strokeLinecap="butt" /><path d="M14 29.5v-13h17v13H14z" /><path d="M14 16.5L11 14h23l-3 2.5H14zM11 14V9h4v2h5V9h5v2h5V9h4v5H11z" strokeLinecap="butt" /></g></svg>
+    <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <g fill="#000" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 13h17v6h-17z" strokeLinejoin="miter"/>
+            <path d="M12 36h21v-3H12zM15 33v-9h15v9zM12 9h21v4H12z"/>
+        </g>
+    </svg>
 );

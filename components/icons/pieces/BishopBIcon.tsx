@@ -1,5 +1,12 @@
 import React from 'react';
 
 export const BishopBIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
-    <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}><g fill="none" fillRule="evenodd" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><g fill="#000" strokeLinecap="butt"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 1.65.54 3 2-.68.97-1.65.99-3 .5-3.39-.97-10.11.43-13.5-2-3.39 2.43-10.11 1.03-13.5 2 0 0-1.65.54-3 2-.68.97-1.65.99-3-.5z" /><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0 .5.5 0 2z" /><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" /></g><path d="M17.5 26h10M15 30h15m-7.5-14.5v5.5M20 18h5" strokeLinecap="butt" /></g></svg>
+    <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}>
+        <g fill="#000" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 36c0-1.5-1.5-3-3-3s-3 1.5-3 3c0 1.5 1.5 3 3 3s3-1.5 3-3zm12 0c0-1.5-1.5-3-3-3s-3 1.5-3 3c0 1.5 1.5 3 3 3s3-1.5 3-3z"/>
+            <path d="M15 33c0-1.5 1.5-3 3-3h9c1.5 0 3 1.5 3 3v-3c0-1.5-1.5-3-3-3H18c-1.5 0-3 1.5-3 3v3z"/>
+            <path d="M18 27c1.5 0 3-1.5 3-3 0-1.5-1.5-3-3-3-1.5 0-3 1.5-3 3 0 1.5 1.5 3 3 3zm1.5-9c2.5 2.5 12.5 2.5 15 0-2.5-2.5-12.5-2.5-15 0zm-3 2c-3.5-3.5 6-12.5-2-16-8.5 3.5 1.5 12.5-2 16z"/>
+            <path d="M21 9a2 2 0 1 1-4 0 2 2 0 1 1 4 0z"/>
+        </g>
+    </svg>
 );
