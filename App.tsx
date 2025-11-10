@@ -104,7 +104,7 @@ type View =
   | 'activity-log'
   | 'play-game';
 
-type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+type SyncStatus = 'idle' | 'loading' | 'syncing' | 'synced' | 'error';
 
 const App: React.FC = () => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -115,8 +115,9 @@ const App: React.FC = () => {
     const [activityLog, setActivityLog] = useState<ActivityLogData>(initialActivityLogData);
     const [tournaments, setTournaments] = useState<Record<string, Tournament>>({});
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+    const [syncStatus, setSyncStatus] = useState<SyncStatus>('loading');
     const debounceTimer = useRef<number | null>(null);
+    const isInitialMount = useRef(true);
 
     useEffect(() => {
         const loggedIn = localStorage.getItem('isAuthenticated');
@@ -130,7 +131,6 @@ const App: React.FC = () => {
                     setClassificationData(firebaseData.classificationData || initialClassificationData);
                     setActivityLog(firebaseData.activityLog || initialActivityLogData);
                     setTournaments(firebaseData.tournaments || {});
-                    setSyncStatus('synced');
                 } else {
                     // Fallback to localStorage if Firebase is unavailable or empty
                     console.log("Falling back to localStorage.");
@@ -151,17 +151,22 @@ const App: React.FC = () => {
                          setTournaments({});
                     }
                 }
+                setSyncStatus('synced');
             };
             loadData();
+        } else {
+            setSyncStatus('idle'); // Not logged in, so idle.
         }
     }, []);
     
-    // Auto-save to Firebase whenever data changes
+    // Auto-save to Firebase whenever data changes, but skip the initial load.
     useEffect(() => {
-        if (Object.keys(classData).length === 0 && Object.keys(tournaments).length === 0) {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
             return;
         }
-        if (syncStatus === 'idle' && !isAuthenticated) return;
+
+        if (!isAuthenticated) return;
 
         setSyncStatus('syncing');
         if (debounceTimer.current) {

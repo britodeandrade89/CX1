@@ -12,7 +12,7 @@ import { LogoutIcon } from './icons/LogoutIcon.tsx';
 import { XIcon } from './icons/XIcon.tsx';
 import { CloudIcon } from './icons/CloudIcon.tsx';
 
-type SyncStatus = 'idle' | 'syncing' | 'synced' | 'error';
+type SyncStatus = 'idle' | 'loading' | 'syncing' | 'synced' | 'error';
 
 interface SidebarProps {
     setView: (view: string) => void;
@@ -34,6 +34,10 @@ const SyncStatusIndicator: React.FC<{ status: SyncStatus }> = ({ status }) => {
     let colorClass;
 
     switch (status) {
+        case 'loading':
+            text = 'Carregando dados...';
+            colorClass = 'text-stone-400';
+            break;
         case 'syncing':
             text = 'Sincronizando...';
             colorClass = 'text-yellow-400';
