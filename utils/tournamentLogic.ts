@@ -51,37 +51,58 @@ function generateRoundRobinSchedule(playerNames: string[]): Match[] {
     return schedule;
 }
 
-export function createTournament(tournamentName: string, playerNames: string[]): Tournament {
-    const shuffledPlayers = shuffleArray(playerNames);
-    const numPlayers = shuffledPlayers.length;
-    const groups: Group[] = [];
-    
-    if (numPlayers <= 6) {
-        const playerStats: PlayerStats[] = shuffledPlayers.map(name => ({ name, points: 0, wins: 0, draws: 0, losses: 0, gamesPlayed: 0 }));
-        const schedule = generateRoundRobinSchedule(shuffledPlayers);
-        groups.push({ name: 'Grupo A', players: playerStats, schedule });
-    } else {
-        const MAX_GROUP_SIZE = 6;
-        let numGroups = Math.ceil(numPlayers / MAX_GROUP_SIZE);
-        const baseGroupSize = Math.floor(numPlayers / numGroups);
-        let remainder = numPlayers % numGroups;
+export function getGroupConfigurations(playerCount: number): number[][] {
+    const configs: number[][] = [];
+    if (playerCount < 3) return [];
 
-        let playerIndex = 0;
-        for (let i = 0; i < numGroups; i++) {
-            const groupSize = baseGroupSize + (remainder > 0 ? 1 : 0);
-            const groupPlayers = shuffledPlayers.slice(playerIndex, playerIndex + groupSize);
-            const playerStats: PlayerStats[] = groupPlayers.map(name => ({ name, points: 0, wins: 0, draws: 0, losses: 0, gamesPlayed: 0 }));
-            const schedule = generateRoundRobinSchedule(groupPlayers);
-            
-            groups.push({
-                name: `Grupo ${String.fromCharCode(65 + i)}`,
-                players: playerStats,
-                schedule
-            });
+    // Option 1: One single group is always an option.
+    configs.push([playerCount]);
 
-            playerIndex += groupSize;
-            if (remainder > 0) remainder--;
+    // Option 2: Multiple groups
+    // Each group should have at least 3 players.
+    const maxGroups = Math.floor(playerCount / 3);
+    for (let numGroups = 2; numGroups <= maxGroups; numGroups++) {
+        const baseSize = Math.floor(playerCount / numGroups);
+        const remainder = playerCount % numGroups;
+
+        // All groups must have at least 3 players.
+        if (baseSize < 3) {
+            continue;
         }
+
+        const config: number[] = [];
+        for (let i = 0; i < numGroups; i++) {
+            config.push(baseSize + (i < remainder ? 1 : 0));
+        }
+        
+        // Check if this configuration is different from the single group one
+        if (config.length > 1) {
+            configs.push(config.sort((a, b) => b - a));
+        }
+    }
+    return configs;
+}
+
+export function createTournament(tournamentName: string, playerNames: string[], groupConfiguration: number[]): Tournament {
+    const shuffledPlayers = shuffleArray(playerNames);
+    const groups: Group[] = [];
+    let playerIndex = 0;
+
+    for (let i = 0; i < groupConfiguration.length; i++) {
+        const groupSize = groupConfiguration[i];
+        const groupPlayers = shuffledPlayers.slice(playerIndex, playerIndex + groupSize);
+        if (groupPlayers.length === 0) continue;
+
+        const playerStats: PlayerStats[] = groupPlayers.map(name => ({ name, points: 0, wins: 0, draws: 0, losses: 0, gamesPlayed: 0 }));
+        const schedule = generateRoundRobinSchedule(groupPlayers);
+        
+        groups.push({
+            name: `Grupo ${String.fromCharCode(65 + i)}`,
+            players: playerStats,
+            schedule
+        });
+
+        playerIndex += groupSize;
     }
 
     const defaultRules = [
@@ -97,7 +118,6 @@ export function createTournament(tournamentName: string, playerNames: string[]):
     ];
 
     return {
-        // FIX: Added missing 'id' property to align with the Tournament type.
         id: Date.now().toString(),
         name: tournamentName,
         players: playerNames,

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Tournament, PlayerStats, Match, MatchResult, Group } from '../types';
-import { createTournament, sortPlayers } from '../utils/tournamentLogic';
+import { createTournament, getGroupConfigurations, sortPlayers } from '../utils/tournamentLogic';
 import { BackButton } from './BackButton.tsx';
 import { TrophyIcon } from './icons/TrophyIcon.tsx';
 import { PlusIcon } from './icons/PlusIcon.tsx';
@@ -70,12 +70,50 @@ const TournamentSetup: React.FC<{ onStart: (name: string, playerCount: number) =
                     className="w-full flex items-center justify-center gap-3 px-6 py-4 font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-300 text-lg"
                 >
                     <PlusIcon className="w-6 h-6" />
-                    Gerar Torneio
+                    Avançar
                 </button>
             </div>
         </div>
     );
 };
+
+const GroupConfigurationSelection: React.FC<{
+    data: { name: string; playerCount: number; configurations: number[][] };
+    onConfirm: (config: number[]) => void;
+    onBack: () => void;
+}> = ({ data, onConfirm, onBack }) => {
+    const formatConfig = (config: number[]) => {
+        const groupCount = config.length;
+        if (groupCount === 1) {
+             return `1 grupo de ${config[0]} jogadores`;
+        }
+        const groupDesc = config.map(size => `${size} jogadores`).join(' e ');
+        return `${groupCount} grupos: ${groupDesc}`;
+    };
+
+    return (
+        <div className="w-full max-w-2xl">
+             <BackButton onClick={onBack} text="Voltar"/>
+            <div className="text-center">
+                 <h2 className="text-2xl font-bold text-stone-100 mb-2">Selecione o Formato dos Grupos</h2>
+                 <p className="text-stone-400 mb-8">Para <strong>{data.playerCount} jogadores</strong>, as seguintes opções estão disponíveis:</p>
+            </div>
+            <div className="space-y-4">
+                {data.configurations.map((config, index) => (
+                    <button
+                        key={index}
+                        onClick={() => onConfirm(config)}
+                        className="w-full text-left p-4 bg-white/5 rounded-lg border border-stone-800 hover:bg-white/10 hover:border-yellow-600 transition-colors duration-200"
+                    >
+                        <span className="font-bold text-lg text-stone-100">{formatConfig(config)}</span>
+                        <p className="text-sm text-stone-400">Clique para criar o torneio com esta configuração.</p>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 
 const EditPlayersModal: React.FC<{
     isOpen: boolean;
@@ -534,18 +572,40 @@ const TournamentManagementView: React.FC<{
 };
 
 export const TournamentView: React.FC<TournamentViewProps> = ({ onBack, tournaments, setTournaments }) => {
-    type ViewState = 'list' | 'setup' | 'manage';
+    type ViewState = 'list' | 'setup' | 'selectGroups' | 'manage';
     const [view, setView] = useState<ViewState>('list');
     const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+    const [creationData, setCreationData] = useState<{name: string; playerCount: number; configurations: number[][]} | null>(null);
 
-    const handleCreateNew = (name: string, playerCount: number) => {
+
+    const handleSetupSubmit = (name: string, playerCount: number) => {
+        const configs = getGroupConfigurations(playerCount);
+
+        if (configs.length <= 1) {
+            const players = Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`);
+            const configToUse = configs.length > 0 ? configs[0] : [playerCount];
+            const newTournament = createTournament(name, players, configToUse);
+            setTournaments(prev => ({ ...prev, [newTournament.id]: newTournament }));
+            setSelectedTournament(newTournament);
+            setView('manage');
+        } else {
+            setCreationData({ name, playerCount, configurations: configs });
+            setView('selectGroups');
+        }
+    };
+
+    const handleConfigurationSelected = (config: number[]) => {
+        if (!creationData) return;
+        const { name, playerCount } = creationData;
         const players = Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`);
-        const newTournament = createTournament(name, players);
+        const newTournament = createTournament(name, players, config);
+
         setTournaments(prev => ({ ...prev, [newTournament.id]: newTournament }));
         setSelectedTournament(newTournament);
         setView('manage');
+        setCreationData(null);
     };
-
+    
     const handleSelectTournament = (id: string) => {
         setSelectedTournament(tournaments[id]);
         setView('manage');
@@ -578,7 +638,19 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack, tourname
         return (
             <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-2xl">
                 <BackButton onClick={() => setView('list')} />
-                <TournamentSetup onStart={handleCreateNew} />
+                <TournamentSetup onStart={handleSetupSubmit} />
+            </div>
+        );
+    }
+
+    if (view === 'selectGroups' && creationData) {
+        return (
+             <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-2xl">
+                <GroupConfigurationSelection
+                    data={creationData}
+                    onConfirm={handleConfigurationSelected}
+                    onBack={() => { setView('setup'); setCreationData(null); }}
+                />
             </div>
         );
     }
