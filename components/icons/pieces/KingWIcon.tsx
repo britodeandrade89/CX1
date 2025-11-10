@@ -3,11 +3,9 @@ import React from 'react';
 export const KingWIcon: React.FC<React.SVGProps<SVGSVGElement>> = (props) => (
     <svg viewBox="0 0 45 45" xmlns="http://www.w3.org/2000/svg" {...props}>
         <g fill="#fff" stroke="#000" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22.5 11.5V6M20 8h5"/>
-            <path d="M22.5 25s4.5-7.5 3-10.5c0 0-1.5-1-3-1s-3 1-3 1c1.5 3-3 10.5-3 10.5"/>
-            <path d="M12.5 36c5.5-3 14.5-3 20 0v-5s-2.5-1.5-10-1.5-10 1.5-10 1.5v5z"/>
-            <path d="M12.5 31s-2.5-1.5-10-1.5-10 1.5-10 1.5" transform="translate(10,0)"/>
-            <path d="M32.5 31s2.5-1.5 10-1.5 10 1.5 10 1.5" transform="translate(-10,0)"/>
+            <path d="M 22.5,11.5 L 22.5,6 M 20,8 L 25,8" />
+            <path d="M 22.5,25 C 22.5,25 27,17.5 25,14.5 C 23,11.5 22.5,12 22.5,14 C 22.5,16 22.5,15.5 22.5,15.5 C 22.5,15.5 22.5,16 22.5,14 C 22.5,12 22,11.5 20,14.5 C 18,17.5 22.5,25 22.5,25" />
+            <path d="M 9,39 L 36,39 L 36,36 L 9,36 L 9,39 Z M 12.5,36 L 12.5,32 L 32.5,32 L 32.5,36 L 12.5,36 Z M 11.5,32 C 11.5,30 14.5,28 14.5,26 L 30.5,26 C 30.5,28 33.5,30 33.5,32 L 11.5,32 Z" />
         </g>
     </svg>
 );
