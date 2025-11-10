@@ -91,6 +91,7 @@ export function createTournament(tournamentName: string, playerNames: string[]):
         "Anotação: A anotação dos lances não é obrigatória.",
         "Falta - Relógio: Esquecer de acionar o relógio após realizar um lance é considerado falta.",
         "Falta - Peça Tocada: Tocar em uma peça e não realizar um lance válido com ela é considerado falta (regra peça tocada, peça jogada).",
+        "Silêncio: O silêncio é obrigatório para não atrapalhar a concentração. Conversar durante a partida será considerado uma falta. A reincidência causa a derrota na partida.",
         "Sorteio dos Grupos: Os grupos serão definidos por sorteio automatizado no início do torneio.",
         "Formato: Fase de grupos em sistema de rodízio. O 1º colocado de cada grupo avança para a fase final. O vencedor da fase final é o campeão.",
     ];
