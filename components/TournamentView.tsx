@@ -16,6 +16,66 @@ interface TournamentViewProps {
     setTournaments: React.Dispatch<React.SetStateAction<Record<string, Tournament>>>;
 }
 
+const PlayerNameEntry: React.FC<{
+    playerCount: number;
+    onConfirm: (names: string[]) => void;
+    onBack: () => void;
+}> = ({ playerCount, onConfirm, onBack }) => {
+    const [playerNames, setPlayerNames] = useState<string[]>(() => Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`));
+    const [error, setError] = useState<string | null>(null);
+
+    const handleNameChange = (index: number, name: string) => {
+        const newNames = [...playerNames];
+        newNames[index] = name;
+        setPlayerNames(newNames);
+    };
+
+    const handleConfirm = () => {
+        const emptyNames = playerNames.some(name => name.trim() === '');
+        if (emptyNames) {
+            setError('Todos os nomes dos jogadores devem ser preenchidos.');
+            return;
+        }
+        setError(null);
+        onConfirm(playerNames);
+    };
+
+    return (
+        <div className="w-full max-w-2xl">
+            <BackButton onClick={onBack} text="Voltar"/>
+            <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-stone-100">Insira os Nomes dos Jogadores</h2>
+                <p className="text-stone-400">Preencha os nomes para os {playerCount} participantes.</p>
+            </div>
+            {error && <div className="bg-red-500/20 text-red-300 p-3 rounded-lg mb-4 text-center">{error}</div>}
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2">
+                {playerNames.map((name, index) => (
+                    <div key={index}>
+                        <label htmlFor={`player-${index}`} className="block text-sm font-medium text-stone-400 mb-1">
+                            Jogador {index + 1}
+                        </label>
+                        <input
+                            id={`player-${index}`}
+                            type="text"
+                            value={name}
+                            onChange={(e) => handleNameChange(index, e.target.value)}
+                            className="w-full p-3 bg-white/5 rounded-lg border border-stone-800 focus:ring-2 focus:ring-yellow-600 focus:outline-none text-stone-100"
+                        />
+                    </div>
+                ))}
+            </div>
+            <button
+                onClick={handleConfirm}
+                className="w-full mt-6 flex items-center justify-center gap-3 px-6 py-4 font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-300 text-lg"
+            >
+                <TrophyIcon className="w-6 h-6" />
+                Criar Torneio
+            </button>
+        </div>
+    );
+};
+
+
 const TournamentSetup: React.FC<{ onStart: (name: string, playerCount: number) => void }> = ({ onStart }) => {
     const [tournamentName, setTournamentName] = useState('');
     const [playerCount, setPlayerCount] = useState(4);
@@ -572,22 +632,18 @@ const TournamentManagementView: React.FC<{
 };
 
 export const TournamentView: React.FC<TournamentViewProps> = ({ onBack, tournaments, setTournaments }) => {
-    type ViewState = 'list' | 'setup' | 'selectGroups' | 'manage';
+    type ViewState = 'list' | 'setup' | 'selectGroups' | 'enterPlayerNames' | 'manage';
     const [view, setView] = useState<ViewState>('list');
     const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
-    const [creationData, setCreationData] = useState<{name: string; playerCount: number; configurations: number[][]} | null>(null);
-
+    const [creationData, setCreationData] = useState<{name: string; playerCount: number; configurations: number[][]; selectedConfig?: number[]} | null>(null);
 
     const handleSetupSubmit = (name: string, playerCount: number) => {
         const configs = getGroupConfigurations(playerCount);
 
         if (configs.length <= 1) {
-            const players = Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`);
             const configToUse = configs.length > 0 ? configs[0] : [playerCount];
-            const newTournament = createTournament(name, players, configToUse);
-            setTournaments(prev => ({ ...prev, [newTournament.id]: newTournament }));
-            setSelectedTournament(newTournament);
-            setView('manage');
+            setCreationData({ name, playerCount, configurations: configs, selectedConfig: configToUse });
+            setView('enterPlayerNames');
         } else {
             setCreationData({ name, playerCount, configurations: configs });
             setView('selectGroups');
@@ -596,10 +652,15 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack, tourname
 
     const handleConfigurationSelected = (config: number[]) => {
         if (!creationData) return;
-        const { name, playerCount } = creationData;
-        const players = Array.from({ length: playerCount }, (_, i) => `Jogador ${i + 1}`);
-        const newTournament = createTournament(name, players, config);
+        setCreationData(prev => prev ? { ...prev, selectedConfig: config } : null);
+        setView('enterPlayerNames');
+    };
 
+    const handlePlayerNamesSubmit = (playerNames: string[]) => {
+        if (!creationData || !creationData.selectedConfig) return;
+        const { name, selectedConfig } = creationData;
+
+        const newTournament = createTournament(name, playerNames, selectedConfig);
         setTournaments(prev => ({ ...prev, [newTournament.id]: newTournament }));
         setSelectedTournament(newTournament);
         setView('manage');
@@ -654,6 +715,25 @@ export const TournamentView: React.FC<TournamentViewProps> = ({ onBack, tourname
             </div>
         );
     }
+
+    if (view === 'enterPlayerNames' && creationData) {
+        return (
+            <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-2xl">
+                <PlayerNameEntry
+                    playerCount={creationData.playerCount}
+                    onConfirm={handlePlayerNamesSubmit}
+                    onBack={() => {
+                        if (creationData.configurations.length > 1) {
+                            setView('selectGroups');
+                        } else {
+                            setView('setup');
+                        }
+                    }}
+                />
+            </div>
+        );
+    }
+
 
     if (view === 'manage' && selectedTournament) {
         return <TournamentManagementView
