@@ -272,10 +272,15 @@ const App: React.FC = () => {
         localStorage.setItem('activityLogData', JSON.stringify(newLogData)); // Also save to local for offline resilience
     }
 
-    const handleUpdateTournaments = (newTournaments: Record<string, Tournament>) => {
-        setTournaments(newTournaments);
-        localStorage.setItem('tournaments', JSON.stringify(newTournaments)); // Also save to local for offline resilience
-    }
+    const handleUpdateTournaments = (updater: React.SetStateAction<Record<string, Tournament>>) => {
+        setTournaments(prevState => {
+            const newState = typeof updater === 'function'
+                ? (updater as (prevState: Record<string, Tournament>) => Record<string, Tournament>)(prevState)
+                : updater;
+            localStorage.setItem('tournaments', JSON.stringify(newState)); // Save to local for offline resilience
+            return newState;
+        });
+    };
 
     const renderView = () => {
         switch (view) {
