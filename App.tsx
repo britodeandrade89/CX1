@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, doc, getDoc, setDoc, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, setDoc, enableIndexedDbPersistence, onSnapshot } from 'firebase/firestore';
 import { saveDataToGithub, loadDataFromGithub } from './services/githubService';
 
 import { Sidebar } from './components/Sidebar';
@@ -71,26 +71,6 @@ const saveDataToFirebase = async (data: AppData): Promise<void> => {
     }
 };
 
-const loadDataFromFirebase = async (): Promise<AppData | null> => {
-    try {
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-            console.log(`Data loaded from Firebase. (From cache: ${docSnap.metadata.fromCache})`);
-            return docSnap.data() as AppData;
-        }
-        console.log("No data found in Firebase.");
-        return null;
-    } catch (error: any) {
-        // Gracefully handle offline errors, which are expected.
-        // The Firestore SDK throws 'unavailable' when offline and the document isn't in the cache.
-        if (error.code === 'unavailable') {
-            console.log("Client is offline. Firebase data could not be fetched from the server.");
-        } else {
-            console.error("Error loading data from Firebase:", error);
-        }
-        return null;
-    }
-};
 // --- End Firebase Setup ---
 
 type View =
@@ -117,77 +97,75 @@ const App: React.FC = () => {
     const [activityLog, setActivityLog] = useState<ActivityLogData>(initialActivityLogData);
     const [tournaments, setTournaments] = useState<Record<string, Tournament>>({});
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [syncStatus, setSyncStatus] = useState<SyncStatus>('loading');
+    const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
     const debounceTimer = useRef<number | null>(null);
     const isInitialMount = useRef(true);
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const [githubConfig, setGithubConfig] = useState<GithubConfig | null>(null);
 
-
-    const initializeAppData = async () => {
-        setSyncStatus('loading');
-
-        // --- INSTANT LOAD from Local Storage or Initial Data ---
-        try {
-            const localClassData = JSON.parse(localStorage.getItem('classData') || 'null');
-            const localClassificationData = JSON.parse(localStorage.getItem('classificationData') || 'null');
-            const localActivityLog = JSON.parse(localStorage.getItem('activityLogData') || 'null');
-            const localTournaments = JSON.parse(localStorage.getItem('tournaments') || 'null');
-
-            // Fallback to initial data if local is empty or doesn't exist
-            setClassData(localClassData && Object.keys(localClassData).length > 0 ? localClassData : initialClassData);
-            setClassificationData(localClassificationData && Object.keys(localClassificationData).length > 0 ? localClassificationData : initialClassificationData);
-            setActivityLog(localActivityLog || initialActivityLogData);
-            setTournaments(localTournaments || {});
-            console.log("Instantly loaded data from local storage or initial constants.");
-        } catch (error) {
-            console.error("Failed to parse local storage, falling back to initial data.", error);
-            setClassData(initialClassData);
-            setClassificationData(initialClassificationData);
-            setActivityLog(initialActivityLogData);
-            setTournaments({});
-        }
-
-        // --- BACKGROUND SYNC with Firebase ---
-        try {
-            const firebaseData = await loadDataFromFirebase();
-            if (firebaseData) {
-                const { classData: fbClass, classificationData: fbClassification, activityLog: fbLog, tournaments: fbTournaments } = firebaseData;
-
-                // Only overwrite local state if Firebase data is valid and non-empty.
-                if (fbClass && Object.keys(fbClass).length > 0) {
-                    setClassData(fbClass);
-                }
-                if (fbClassification && Object.keys(fbClassification).length > 0) {
-                    setClassificationData(fbClassification);
-                }
-                setActivityLog(fbLog || initialActivityLogData);
-                setTournaments(fbTournaments || {});
-                console.log("Successfully synced with Firebase.");
-            } else {
-                console.log("No data found in Firebase. Using local/initial data. It will be saved on the next change.");
-            }
-            setSyncStatus('synced');
-        } catch (error) {
-            console.error("Firebase sync failed:", error);
-            setSyncStatus('error');
-        }
-    };
-
+    // Effect for checking authentication status and loading initial local data
     useEffect(() => {
         const loggedIn = localStorage.getItem('isAuthenticated');
         const storedConfig = localStorage.getItem('githubConfig');
         if (storedConfig) {
             setGithubConfig(JSON.parse(storedConfig));
         }
+
         if (loggedIn === 'true') {
             setIsAuthenticated(true);
-            initializeAppData();
+             // Instantly load from local storage for a fast UI response
+            try {
+                const localClassData = JSON.parse(localStorage.getItem('classData') || 'null');
+                const localClassificationData = JSON.parse(localStorage.getItem('classificationData') || 'null');
+                const localActivityLog = JSON.parse(localStorage.getItem('activityLogData') || 'null');
+                const localTournaments = JSON.parse(localStorage.getItem('tournaments') || 'null');
+                setClassData(localClassData || initialClassData);
+                setClassificationData(localClassificationData || initialClassificationData);
+                setActivityLog(localActivityLog || initialActivityLogData);
+                setTournaments(localTournaments || {});
+            } catch {
+                // Fallback if local storage is corrupt
+                setClassData(initialClassData);
+                setClassificationData(initialClassificationData);
+                setActivityLog(initialActivityLogData);
+                setTournaments({});
+            }
         } else {
-            setSyncStatus('idle');
             setIsAuthenticated(false);
         }
     }, []);
+
+    // Effect for real-time Firebase synchronization
+    useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+
+        setSyncStatus('loading');
+        const unsubscribe = onSnapshot(docRef, (docSnap) => {
+            if (docSnap.exists()) {
+                const firebaseData = docSnap.data() as AppData;
+                const { classData: fbClass, classificationData: fbClassification, activityLog: fbLog, tournaments: fbTournaments } = firebaseData;
+
+                setClassData(fbClass || initialClassData);
+                setClassificationData(fbClassification || initialClassificationData);
+                setActivityLog(fbLog || initialActivityLogData);
+                setTournaments(fbTournaments || {});
+                
+                console.log(`Data synced from Firebase. (From cache: ${docSnap.metadata.fromCache})`);
+                setSyncStatus('synced');
+            } else {
+                console.log("No data in Firebase. Local data will be saved on next change.");
+                setSyncStatus('synced'); // Synced in the sense that there's nothing to sync
+            }
+        }, (error) => {
+            console.error("Firebase onSnapshot listener error:", error);
+            setSyncStatus('error');
+        });
+
+        // Cleanup subscription on component unmount or when user logs out
+        return () => unsubscribe();
+    }, [isAuthenticated]);
     
     // Auto-save to Firebase whenever data changes, but skip the initial load.
     useEffect(() => {
@@ -212,7 +190,7 @@ const App: React.FC = () => {
                     tournaments,
                 };
                 await saveDataToFirebase(allData);
-                setSyncStatus('synced');
+                // The onSnapshot listener will update status to 'synced'
             } catch (error) {
                 setSyncStatus('error');
                 console.error("Auto-sync failed:", error);
@@ -230,7 +208,6 @@ const App: React.FC = () => {
     const handleLoginSuccess = () => {
         localStorage.setItem('isAuthenticated', 'true');
         setIsAuthenticated(true);
-        initializeAppData();
     };
 
     const handleLogout = () => {
@@ -318,11 +295,12 @@ const App: React.FC = () => {
         try {
             const loadedData = await loadDataFromGithub(config);
             if (loadedData) {
+                // This will overwrite local state and trigger a save to Firebase
                 setClassData(loadedData.classData || initialClassData);
                 setClassificationData(loadedData.classificationData || initialClassificationData);
                 setActivityLog(loadedData.activityLog || initialActivityLogData);
                 setTournaments(loadedData.tournaments || {});
-                alert('Dados carregados do GitHub com sucesso!');
+                alert('Dados carregados do GitHub com sucesso! Sincronizando com a nuvem...');
                 setIsGithubModalOpen(false);
             }
         } catch (error: any) {
