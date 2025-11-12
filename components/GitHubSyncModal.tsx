@@ -8,10 +8,11 @@ interface GitHubSyncModalProps {
     onClose: () => void;
     onSave: (config: GithubConfig) => void;
     onLoad: (config: GithubConfig) => Promise<void>;
+    onSync: (config: GithubConfig) => Promise<void>;
     currentConfig: GithubConfig | null;
 }
 
-export const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClose, onSave, onLoad, currentConfig }) => {
+export const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClose, onSave, onLoad, onSync, currentConfig }) => {
     const [username, setUsername] = useState('');
     const [repo, setRepo] = useState('');
     const [token, setToken] = useState('');
@@ -24,7 +25,7 @@ export const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClos
         }
     }, [currentConfig]);
 
-    const handleSave = () => {
+    const handleSaveConfig = () => {
         if (!username.trim() || !repo.trim() || !token.trim()) {
             alert('Por favor, preencha todos os campos.');
             return;
@@ -38,6 +39,14 @@ export const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClos
             return;
         }
         onLoad({ username, repo, token });
+    }
+    
+    const handleSync = () => {
+        if (!username.trim() || !repo.trim() || !token.trim()) {
+            alert('Por favor, preencha todos os campos para salvar os dados.');
+            return;
+        }
+        onSync({ username, repo, token });
     }
 
     return (
@@ -88,8 +97,9 @@ export const GitHubSyncModal: React.FC<GitHubSyncModalProps> = ({ isOpen, onClos
 
                  <div className="pt-4 mt-4 border-t border-stone-800 flex flex-col sm:flex-row justify-end gap-4">
                     <button onClick={onClose} className="px-4 py-2 text-sm font-medium text-stone-100 bg-white/5 rounded-lg hover:bg-white/10 transition-colors">Cancelar</button>
+                    <button onClick={handleSaveConfig} className="px-4 py-2 text-sm font-medium text-stone-300 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">Salvar Config.</button>
                     <button onClick={handleLoad} className="px-4 py-2 text-sm font-bold text-yellow-600 bg-yellow-600/10 rounded-lg hover:bg-yellow-600/20 border border-yellow-600/50 transition-colors">Carregar da Nuvem</button>
-                    <button onClick={handleSave} className="px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors">Salvar Configuração</button>
+                    <button onClick={handleSync} className="px-4 py-2 text-sm font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors">Salvar na Nuvem</button>
                 </div>
             </div>
         </Modal>

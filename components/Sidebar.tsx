@@ -11,6 +11,7 @@ import { ChessIcon } from './icons/ChessIcon.tsx';
 import { LogoutIcon } from './icons/LogoutIcon.tsx';
 import { XIcon } from './icons/XIcon.tsx';
 import { CloudIcon } from './icons/CloudIcon.tsx';
+import { GitHubIcon } from './icons/GitHubIcon.tsx';
 
 type SyncStatus = 'idle' | 'loading' | 'syncing' | 'synced' | 'error';
 
@@ -20,6 +21,7 @@ interface SidebarProps {
     isOpen: boolean;
     onClose: () => void;
     syncStatus: SyncStatus;
+    onOpenGithubModal: () => void;
 }
 
 const NavItem: React.FC<{ icon: React.ReactNode; label: string; onClick: () => void; }> = ({ icon, label, onClick }) => (
@@ -43,7 +45,7 @@ const SyncStatusIndicator: React.FC<{ status: SyncStatus }> = ({ status }) => {
             colorClass = 'text-yellow-400';
             break;
         case 'synced':
-            text = 'Salvo na nuvem';
+            text = 'Salvo (offline)';
             colorClass = 'text-green-400';
             break;
         case 'error':
@@ -65,7 +67,7 @@ const SyncStatusIndicator: React.FC<{ status: SyncStatus }> = ({ status }) => {
 };
 
 
-export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, isOpen, onClose, syncStatus }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, isOpen, onClose, syncStatus, onOpenGithubModal }) => {
     return (
         <>
             <aside className={`fixed md:relative z-50 md:z-auto h-full bg-stone-900/90 backdrop-blur-lg border-r border-stone-800 w-64 flex-shrink-0 flex flex-col transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
@@ -92,6 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ setView, onLogout, isOpen, onC
 
                 <div className="p-4 border-t border-stone-800 space-y-2">
                     <SyncStatusIndicator status={syncStatus} />
+                    <NavItem icon={<GitHubIcon className="w-full h-full" />} label="Sincronizar com GitHub" onClick={onOpenGithubModal} />
                     <NavItem icon={<LogoutIcon className="w-full h-full" />} label="Sair" onClick={onLogout} />
                 </div>
             </aside>

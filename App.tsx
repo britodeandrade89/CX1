@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, doc, getDoc, setDoc, enableIndexedDbPersistence } from 'firebase/firestore';
+import { saveDataToGithub, loadDataFromGithub } from './services/githubService';
 
 import { Sidebar } from './components/Sidebar';
 import { MainMenuView } from './components/MainMenuView';
@@ -18,7 +19,8 @@ import { LoginView } from './components/LoginView';
 import { Background } from './components/Background';
 import { HamburgerIcon } from './components/icons/HamburgerIcon';
 import { XIcon } from './components/icons/XIcon';
-import type { ClassDataMap, ClassificationDataMap, ActivityLogData, Tournament } from './types';
+import { GitHubSyncModal } from './components/GitHubSyncModal';
+import type { ClassDataMap, ClassificationDataMap, ActivityLogData, Tournament, GithubConfig } from './types';
 import { initialClassData, initialClassificationData } from './constants';
 import { activityLogData as initialActivityLogData } from './activityLogData';
 
@@ -118,6 +120,9 @@ const App: React.FC = () => {
     const [syncStatus, setSyncStatus] = useState<SyncStatus>('loading');
     const debounceTimer = useRef<number | null>(null);
     const isInitialMount = useRef(true);
+    const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
+    const [githubConfig, setGithubConfig] = useState<GithubConfig | null>(null);
+
 
     const initializeAppData = async () => {
         setSyncStatus('loading');
@@ -171,6 +176,10 @@ const App: React.FC = () => {
 
     useEffect(() => {
         const loggedIn = localStorage.getItem('isAuthenticated');
+        const storedConfig = localStorage.getItem('githubConfig');
+        if (storedConfig) {
+            setGithubConfig(JSON.parse(storedConfig));
+        }
         if (loggedIn === 'true') {
             setIsAuthenticated(true);
             initializeAppData();
@@ -282,6 +291,46 @@ const App: React.FC = () => {
         });
     };
 
+    const handleSaveGithubConfig = (config: GithubConfig) => {
+        setGithubConfig(config);
+        localStorage.setItem('githubConfig', JSON.stringify(config));
+        alert('Configuração do GitHub salva com sucesso!');
+    };
+
+    const handleSyncToGithub = async (config: GithubConfig) => {
+        handleSaveGithubConfig(config); // Save config just in case it was changed
+        try {
+            const allData = { classData, classificationData, activityLog, tournaments };
+            await saveDataToGithub(config, allData);
+            alert('Backup salvo no GitHub com sucesso!');
+            setIsGithubModalOpen(false);
+        } catch (error: any) {
+            console.error("Erro ao salvar no GitHub:", error);
+            alert(`Falha ao salvar no GitHub: ${error.message}`);
+        }
+    };
+
+    const handleLoadFromGithub = async (config: GithubConfig) => {
+        handleSaveGithubConfig(config); // Save config just in case it was changed
+        if (!window.confirm("Isso substituirá todos os seus dados locais. Deseja continuar?")) {
+            return;
+        }
+        try {
+            const loadedData = await loadDataFromGithub(config);
+            if (loadedData) {
+                setClassData(loadedData.classData || initialClassData);
+                setClassificationData(loadedData.classificationData || initialClassificationData);
+                setActivityLog(loadedData.activityLog || initialActivityLogData);
+                setTournaments(loadedData.tournaments || {});
+                alert('Dados carregados do GitHub com sucesso!');
+                setIsGithubModalOpen(false);
+            }
+        } catch (error: any) {
+            console.error("Erro ao carregar do GitHub:", error);
+            alert(`Falha ao carregar do GitHub: ${error.message}`);
+        }
+    };
+
     const renderView = () => {
         switch (view) {
             case 'classes':
@@ -340,11 +389,21 @@ const App: React.FC = () => {
                 isOpen={isSidebarOpen}
                 onClose={() => setIsSidebarOpen(false)}
                 syncStatus={syncStatus}
+                onOpenGithubModal={() => setIsGithubModalOpen(true)}
             />
             
             <main className="flex-1 p-4 md:p-6 flex justify-center items-start overflow-y-auto mt-16 md:mt-0">
                 {renderView()}
             </main>
+
+            <GitHubSyncModal
+                isOpen={isGithubModalOpen}
+                onClose={() => setIsGithubModalOpen(false)}
+                onSave={handleSaveGithubConfig}
+                onLoad={handleLoadFromGithub}
+                onSync={handleSyncToGithub}
+                currentConfig={githubConfig}
+            />
         </div>
     );
 };

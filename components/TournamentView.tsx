@@ -29,6 +29,12 @@ const PlayerNameEntry: React.FC<{
         newNames[index] = name;
         setPlayerNames(newNames);
     };
+    
+    const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+        if (e.target.value.startsWith('Jogador ')) {
+            e.target.select();
+        }
+    };
 
     const handleConfirm = () => {
         const emptyNames = playerNames.some(name => name.trim() === '');
@@ -59,6 +65,7 @@ const PlayerNameEntry: React.FC<{
                             type="text"
                             value={name}
                             onChange={(e) => handleNameChange(index, e.target.value)}
+                            onFocus={handleFocus}
                             className="w-full p-3 bg-white/5 rounded-lg border border-stone-800 focus:ring-2 focus:ring-yellow-600 focus:outline-none text-stone-100"
                         />
                     </div>
