@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import type { Tournament, PlayerStats, Match, MatchResult, Group } from '../types';
-import { createTournament, getGroupConfigurations, sortPlayers } from '../utils/tournamentLogic';
+import { createTournament, getGroupConfigurations, sortPlayers, generateRoundRobinSchedule } from '../utils/tournamentLogic';
 import { BackButton } from './BackButton.tsx';
 import { TrophyIcon } from './icons/TrophyIcon.tsx';
 import { PlusIcon } from './icons/PlusIcon.tsx';
@@ -9,6 +9,7 @@ import { PencilIcon } from './icons/PencilIcon.tsx';
 import { DocumentTextIcon } from './icons/DocumentTextIcon.tsx';
 import { TrashIcon } from './icons/TrashIcon.tsx';
 import { NextMatches } from './NextMatches.tsx';
+import { CrownIcon } from './icons/CrownIcon.tsx';
 
 interface TournamentViewProps {
     onBack: () => void;
@@ -450,6 +451,104 @@ const GroupStage: React.FC<{ tournament: Tournament, setTournament: React.Dispat
     );
 };
 
+const FinalStage: React.FC<{ tournament: Tournament, setTournament: React.Dispatch<React.SetStateAction<Tournament>> }> = ({ tournament, setTournament }) => {
+    
+    const handleUpdateResult = (matchIndex: number, newResult: MatchResult) => {
+        setTournament(prev => {
+            if (!prev) return prev;
+
+            const matchToUpdate = prev.finalSchedule[matchIndex];
+            const oldResult = matchToUpdate.result;
+
+            const updatedFinalists = prev.finalists.map(p => {
+                if (p.name !== matchToUpdate.player1 && p.name !== matchToUpdate.player2) {
+                    return p;
+                }
+                
+                let newP = { ...p };
+
+                if (oldResult) {
+                    newP.gamesPlayed--;
+                    if (oldResult === 'P1_WIN') {
+                        if (p.name === matchToUpdate.player1) { newP.wins--; newP.points--; }
+                        if (p.name === matchToUpdate.player2) { newP.losses--; }
+                    } else if (oldResult === 'P2_WIN') {
+                        if (p.name === matchToUpdate.player2) { newP.wins--; newP.points--; }
+                        if (p.name === matchToUpdate.player1) { newP.losses--; }
+                    } else if (oldResult === 'DRAW') {
+                        newP.draws--; newP.points -= 0.5;
+                    }
+                }
+
+                if (newResult) {
+                    newP.gamesPlayed++;
+                    if (newResult === 'P1_WIN') {
+                        if (p.name === matchToUpdate.player1) { newP.wins++; newP.points++; }
+                        if (p.name === matchToUpdate.player2) { newP.losses++; }
+                    } else if (newResult === 'P2_WIN') {
+                        if (p.name === matchToUpdate.player2) { newP.wins++; newP.points++; }
+                        if (p.name === matchToUpdate.player1) { newP.losses++; }
+                    } else if (newResult === 'DRAW') {
+                        newP.draws++; newP.points += 0.5;
+                    }
+                }
+                return newP;
+            });
+
+            const updatedSchedule = prev.finalSchedule.map((match, mIdx) => {
+                if (mIdx !== matchIndex) return match;
+                return { ...match, result: newResult };
+            });
+            
+            return { ...prev, finalists: updatedFinalists, finalSchedule: updatedSchedule };
+        });
+    };
+
+    const handleDeclareChampion = () => {
+        const sortedFinalists = sortPlayers(tournament.finalists, tournament.finalSchedule);
+        const championName = sortedFinalists[0]?.name || null;
+        if (championName) {
+            setTournament(prev => ({...prev!, champion: championName }));
+        }
+    };
+    
+    const allFinalMatchesPlayed = useMemo(() => {
+        return tournament.finalSchedule.every(match => match.result !== null || match.player1 === 'BYE' || match.player2 === 'BYE');
+    }, [tournament.finalSchedule]);
+
+    return (
+        <div>
+             <h2 className="text-3xl font-bold text-yellow-500 mb-6 pb-2 border-b-2 border-stone-700">Fase Final</h2>
+             <PlayerRanking players={tournament.finalists} schedule={tournament.finalSchedule} />
+             <MatchSchedule schedule={tournament.finalSchedule} onUpdate={handleUpdateResult} />
+             {allFinalMatchesPlayed && !tournament.champion && (
+                <div className="mt-8 text-center">
+                    <button 
+                        onClick={handleDeclareChampion}
+                        className="w-full max-w-md mx-auto flex items-center justify-center gap-3 px-6 py-4 font-bold text-stone-900 bg-yellow-500 rounded-lg hover:bg-yellow-600 transition-colors duration-300 text-lg shadow-lg shadow-yellow-500/20"
+                    >
+                        <CrownIcon className="w-6 h-6" />
+                        Declarar Campeão
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const ChampionDisplay: React.FC<{ name: string }> = ({ name }) => (
+    <div className="mb-8 p-6 bg-gradient-to-br from-yellow-600 to-yellow-800 rounded-xl shadow-lg border-2 border-yellow-400 text-center">
+        <div className="flex justify-center items-center gap-4">
+            <TrophyIcon className="w-12 h-12 text-yellow-300" />
+            <div>
+                <p className="text-xl font-bold text-yellow-200 uppercase tracking-wider">Campeão do Torneio</p>
+                <h2 className="text-4xl font-extrabold text-white">{name}</h2>
+            </div>
+             <TrophyIcon className="w-12 h-12 text-yellow-300" />
+        </div>
+    </div>
+);
+
 
 const TournamentListView: React.FC<{
     tournaments: Tournament[];
@@ -560,8 +659,39 @@ const TournamentManagementView: React.FC<{
         setIsEditingRules(false);
     };
 
+    const allGroupMatchesPlayed = useMemo(() => {
+        if (!tournament || !tournament.groups) return false;
+        return tournament.groups.every(group => 
+            group.schedule.every(match => match.result !== null || match.player1 === 'BYE' || match.player2 === 'BYE')
+        );
+    }, [tournament]);
+
+    const handleAdvanceToFinals = () => {
+        const finalists: PlayerStats[] = tournament.groups.map(group => {
+            const sortedPlayers = sortPlayers(group.players, group.schedule);
+            const topPlayer = sortedPlayers[0];
+            return { name: topPlayer.name, points: 0, wins: 0, draws: 0, losses: 0, gamesPlayed: 0 };
+        });
+
+        if (finalists.length < 2) {
+            alert("Não há finalistas suficientes para a próxima fase.");
+            return;
+        }
+
+        const finalSchedule = generateRoundRobinSchedule(finalists.map(f => f.name));
+
+        setTournament(prev => ({
+            ...prev!,
+            phase: 'final',
+            finalists,
+            finalSchedule
+        }));
+    };
+
     return (
         <div className="p-4 md:p-6 bg-stone-950/80 rounded-xl shadow-lg backdrop-blur-lg border border-stone-800 w-full max-w-5xl">
+            {tournament.champion && <ChampionDisplay name={tournament.champion} />}
+
             <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
                 <div>
                     <BackButton onClick={onBack} text="Voltar à Lista" />
@@ -626,7 +756,26 @@ const TournamentManagementView: React.FC<{
                 )}
             </div>
             
-            <GroupStage tournament={tournament} setTournament={setTournament} />
+            {tournament.phase === 'group' && (
+                <>
+                    <GroupStage tournament={tournament} setTournament={setTournament} />
+                    {allGroupMatchesPlayed && (
+                        <div className="mt-8 text-center">
+                            <button 
+                                onClick={handleAdvanceToFinals}
+                                className="w-full max-w-md mx-auto flex items-center justify-center gap-3 px-6 py-4 font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-300 text-lg shadow-lg shadow-yellow-600/20"
+                            >
+                                <TrophyIcon className="w-6 h-6" />
+                                Finalizar Fase de Grupos e Avançar
+                            </button>
+                        </div>
+                    )}
+                </>
+            )}
+            
+            {tournament.phase === 'final' && (
+                <FinalStage tournament={tournament} setTournament={setTournament} />
+            )}
 
             <EditPlayersModal
                 isOpen={isEditModalOpen}

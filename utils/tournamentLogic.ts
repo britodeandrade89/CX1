@@ -9,7 +9,7 @@ function shuffleArray<T>(array: T[]): T[] {
     return newArray;
 }
 
-function generateRoundRobinSchedule(playerNames: string[]): Match[] {
+export function generateRoundRobinSchedule(playerNames: string[]): Match[] {
     const schedule: Match[] = [];
     const players = [...playerNames];
 
