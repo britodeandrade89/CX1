@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { initializeApp } from 'firebase/app';
+import { getAuth, signInAnonymously, onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { getFirestore, doc, getDoc, setDoc, enableIndexedDbPersistence, onSnapshot } from 'firebase/firestore';
 import { saveDataToGithub, loadDataFromGithub } from './services/githubService';
 
@@ -23,6 +24,7 @@ import { GitHubSyncModal } from './components/GitHubSyncModal';
 import type { ClassDataMap, ClassificationDataMap, ActivityLogData, Tournament, GithubConfig } from './types';
 import { initialClassData, initialClassificationData } from './constants';
 import { activityLogData as initialActivityLogData } from './activityLogData';
+import { LogoIcon } from './components/icons/LogoIcon';
 
 // --- Firebase Setup ---
 const firebaseConfig = {
@@ -36,16 +38,15 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Enable offline persistence
 enableIndexedDbPersistence(db)
   .catch((err) => {
     if (err.code === 'failed-precondition') {
-      // This can happen if multiple tabs are open. Persistence will still work in the primary tab.
       console.warn("Firebase persistence failed, likely due to multiple tabs being open.");
     } else if (err.code === 'unimplemented') {
-      // The browser doesn't support the necessary features.
       console.warn("This browser does not support Firebase offline persistence.");
     }
   });
@@ -88,8 +89,20 @@ type View =
 
 type SyncStatus = 'idle' | 'loading' | 'syncing' | 'synced' | 'error';
 
+const AuthLoadingScreen: React.FC = () => (
+    <main className="relative w-screen h-screen font-poppins flex items-center justify-center">
+        <Background />
+        <div className="flex flex-col items-center animate-pulse">
+            <LogoIcon className="h-24 w-24 text-yellow-600" />
+            <p className="mt-4 text-lg text-stone-300">Conectando...</p>
+        </div>
+    </main>
+);
+
 const App: React.FC = () => {
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
+    const [user, setUser] = useState<User | null>(null);
+    const [authLoading, setAuthLoading] = useState(true);
+    const [loginError, setLoginError] = useState<string | null>(null);
     const [view, setView] = useState<View>('welcome');
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
     const [classData, setClassData] = useState<ClassDataMap>({});
@@ -103,17 +116,23 @@ const App: React.FC = () => {
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const [githubConfig, setGithubConfig] = useState<GithubConfig | null>(null);
 
-    // Effect for checking authentication status and loading initial local data
+    // Effect for Firebase authentication state
     useEffect(() => {
-        const loggedIn = localStorage.getItem('isAuthenticated');
-        const storedConfig = localStorage.getItem('githubConfig');
-        if (storedConfig) {
-            setGithubConfig(JSON.parse(storedConfig));
-        }
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+            setAuthLoading(false);
+        });
+        return () => unsubscribe();
+    }, []);
 
-        if (loggedIn === 'true') {
-            setIsAuthenticated(true);
-             // Instantly load from local storage for a fast UI response
+    // Effect for loading initial local data once authenticated
+    useEffect(() => {
+        if (user) {
+            const storedConfig = localStorage.getItem('githubConfig');
+            if (storedConfig) {
+                setGithubConfig(JSON.parse(storedConfig));
+            }
+            // Instantly load from local storage for a fast UI response
             try {
                 const localClassData = JSON.parse(localStorage.getItem('classData') || 'null');
                 const localClassificationData = JSON.parse(localStorage.getItem('classificationData') || 'null');
@@ -124,20 +143,17 @@ const App: React.FC = () => {
                 setActivityLog(localActivityLog || initialActivityLogData);
                 setTournaments(localTournaments || {});
             } catch {
-                // Fallback if local storage is corrupt
                 setClassData(initialClassData);
                 setClassificationData(initialClassificationData);
                 setActivityLog(initialActivityLogData);
                 setTournaments({});
             }
-        } else {
-            setIsAuthenticated(false);
         }
-    }, []);
+    }, [user]);
 
     // Effect for real-time Firebase synchronization
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!user) {
             return;
         }
 
@@ -156,25 +172,24 @@ const App: React.FC = () => {
                 setSyncStatus('synced');
             } else {
                 console.log("No data in Firebase. Local data will be saved on next change.");
-                setSyncStatus('synced'); // Synced in the sense that there's nothing to sync
+                setSyncStatus('idle'); 
             }
         }, (error) => {
             console.error("Firebase onSnapshot listener error:", error);
             setSyncStatus('error');
         });
 
-        // Cleanup subscription on component unmount or when user logs out
         return () => unsubscribe();
-    }, [isAuthenticated]);
+    }, [user]);
     
-    // Auto-save to Firebase whenever data changes, but skip the initial load.
+    // Auto-save to localStorage and Firebase whenever data changes
     useEffect(() => {
         if (isInitialMount.current) {
             isInitialMount.current = false;
             return;
         }
 
-        if (!isAuthenticated) return;
+        if (!user) return;
 
         setSyncStatus('syncing');
         if (debounceTimer.current) {
@@ -189,36 +204,61 @@ const App: React.FC = () => {
                     activityLog,
                     tournaments,
                 };
+                // Persist to localStorage for fast reloads
+                localStorage.setItem('classData', JSON.stringify(classData));
+                localStorage.setItem('classificationData', JSON.stringify(classificationData));
+                localStorage.setItem('activityLogData', JSON.stringify(activityLog));
+                localStorage.setItem('tournaments', JSON.stringify(tournaments));
+                
+                // Persist to Firebase
                 await saveDataToFirebase(allData);
-                // The onSnapshot listener will update status to 'synced'
             } catch (error) {
                 setSyncStatus('error');
                 console.error("Auto-sync failed:", error);
             }
-        }, 2000); // 2-second debounce
+        }, 1500);
 
         return () => {
             if (debounceTimer.current) {
                 clearTimeout(debounceTimer.current);
             }
         };
-    }, [classData, classificationData, activityLog, tournaments, isAuthenticated]);
+    }, [classData, classificationData, activityLog, tournaments, user]);
 
 
-    const handleLoginSuccess = () => {
-        localStorage.setItem('isAuthenticated', 'true');
-        setIsAuthenticated(true);
+    const handleLoginSuccess = async () => {
+        setLoginError(null); // Clear previous errors
+        try {
+            await signInAnonymously(auth);
+        } catch (error: any) {
+            console.error("Anonymous sign-in failed", error);
+            if (error.code === 'auth/configuration-not-found') {
+                const errorMessage = "Falha na Autenticação: Login anônimo não ativado.\n\n" +
+                    "Para corrigir, por favor, ative o login anônimo no seu painel do Firebase:\n\n" +
+                    "1. Abra o Console do Firebase do projeto 'clube-do-xadrez'.\n" +
+                    "2. No menu, vá em 'Authentication'.\n" +
+                    "3. Clique na aba 'Sign-in method' (Método de login).\n" +
+                    "4. Na lista, encontre 'Anônimo' e clique para editar.\n" +
+                    "5. Ative o provedor e salve.\n\n" +
+                    "Depois, atualize esta página e tente entrar novamente.";
+                setLoginError(errorMessage);
+            } else {
+                setLoginError(`Falha na autenticação. Por favor, verifique sua conexão. (Erro: ${error.message})`);
+            }
+        }
     };
 
-    const handleLogout = () => {
-        localStorage.removeItem('isAuthenticated');
-        setIsAuthenticated(false);
-        setView('welcome');
-        // Reset state to prevent data flashing for the next user
-        setClassData({});
-        setClassificationData({});
-        setActivityLog(initialActivityLogData);
-        setTournaments({});
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            setView('welcome');
+            setClassData({});
+            setClassificationData({});
+            setActivityLog(initialActivityLogData);
+            setTournaments({});
+        } catch (error) {
+            console.error("Sign out failed", error);
+        }
     };
     
     const handleUpdateAttendance = (classId: string, studentId: number, date: string, status: 'P' | 'F') => {
@@ -231,7 +271,6 @@ const App: React.FC = () => {
                 }
                 student.attendance[date] = status;
             }
-            localStorage.setItem('classData', JSON.stringify(newClassData)); // Also save to local for offline resilience
             return newClassData;
         });
     };
@@ -248,14 +287,12 @@ const App: React.FC = () => {
                 student.points = points.toLocaleString('pt-BR');
             }
             newData[classId].students.sort((a: any, b: any) => parseFloat(b.points.replace(',', '.')) - parseFloat(a.points.replace(',', '.')));
-            localStorage.setItem('classificationData', JSON.stringify(newData)); // Also save to local for offline resilience
             return newData;
         });
     };
 
     const handleUpdateActivityLog = (newLogData: ActivityLogData) => {
         setActivityLog(newLogData);
-        localStorage.setItem('activityLogData', JSON.stringify(newLogData)); // Also save to local for offline resilience
     }
 
     const handleUpdateTournaments = (updater: React.SetStateAction<Record<string, Tournament>>) => {
@@ -263,7 +300,6 @@ const App: React.FC = () => {
             const newState = typeof updater === 'function'
                 ? (updater as (prevState: Record<string, Tournament>) => Record<string, Tournament>)(prevState)
                 : updater;
-            localStorage.setItem('tournaments', JSON.stringify(newState)); // Save to local for offline resilience
             return newState;
         });
     };
@@ -275,7 +311,7 @@ const App: React.FC = () => {
     };
 
     const handleSyncToGithub = async (config: GithubConfig) => {
-        handleSaveGithubConfig(config); // Save config just in case it was changed
+        handleSaveGithubConfig(config);
         try {
             const allData = { classData, classificationData, activityLog, tournaments };
             await saveDataToGithub(config, allData);
@@ -288,14 +324,13 @@ const App: React.FC = () => {
     };
 
     const handleLoadFromGithub = async (config: GithubConfig) => {
-        handleSaveGithubConfig(config); // Save config just in case it was changed
+        handleSaveGithubConfig(config);
         if (!window.confirm("Isso substituirá todos os seus dados locais. Deseja continuar?")) {
             return;
         }
         try {
             const loadedData = await loadDataFromGithub(config);
             if (loadedData) {
-                // This will overwrite local state and trigger a save to Firebase
                 setClassData(loadedData.classData || initialClassData);
                 setClassificationData(loadedData.classificationData || initialClassificationData);
                 setActivityLog(loadedData.activityLog || initialActivityLogData);
@@ -337,11 +372,15 @@ const App: React.FC = () => {
         }
     };
     
-    if (!isAuthenticated) {
+    if (authLoading) {
+        return <AuthLoadingScreen />;
+    }
+
+    if (!user) {
         return (
             <main className="relative w-screen h-screen font-poppins">
                 <Background />
-                <LoginView onLoginSuccess={handleLoginSuccess} />
+                <LoginView onLoginSuccess={handleLoginSuccess} error={loginError} />
             </main>
         );
     }
