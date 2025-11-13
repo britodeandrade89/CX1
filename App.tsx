@@ -102,6 +102,7 @@ const AuthLoadingScreen: React.FC = () => (
 const App: React.FC = () => {
     const [user, setUser] = useState<User | null>(null);
     const [authLoading, setAuthLoading] = useState(true);
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
     const [loginError, setLoginError] = useState<string | null>(null);
     const [view, setView] = useState<View>('welcome');
     const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -112,7 +113,7 @@ const App: React.FC = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
     const debounceTimer = useRef<number | null>(null);
-    const isInitialMount = useRef(true);
+    const isSyncingFromFirebase = useRef(false);
     const [isGithubModalOpen, setIsGithubModalOpen] = useState(false);
     const [githubConfig, setGithubConfig] = useState<GithubConfig | null>(null);
 
@@ -160,6 +161,7 @@ const App: React.FC = () => {
         setSyncStatus('loading');
         const unsubscribe = onSnapshot(docRef, (docSnap) => {
             if (docSnap.exists()) {
+                isSyncingFromFirebase.current = true; // Set flag to prevent immediate write-back
                 const firebaseData = docSnap.data() as AppData;
                 const { classData: fbClass, classificationData: fbClassification, activityLog: fbLog, tournaments: fbTournaments } = firebaseData;
 
@@ -184,8 +186,9 @@ const App: React.FC = () => {
     
     // Auto-save to localStorage and Firebase whenever data changes
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
+        // If the state was just updated by Firebase, reset the flag and skip saving to prevent a loop.
+        if (isSyncingFromFirebase.current) {
+            isSyncingFromFirebase.current = false;
             return;
         }
 
@@ -227,6 +230,9 @@ const App: React.FC = () => {
 
 
     const handleLoginSuccess = async () => {
+        if (isLoggingIn) return;
+
+        setIsLoggingIn(true);
         setLoginError(null); // Clear previous errors
         try {
             await signInAnonymously(auth);
@@ -245,6 +251,7 @@ const App: React.FC = () => {
             } else {
                 setLoginError(`Falha na autenticação. Por favor, verifique sua conexão. (Erro: ${error.message})`);
             }
+            setIsLoggingIn(false);
         }
     };
 
@@ -380,7 +387,7 @@ const App: React.FC = () => {
         return (
             <main className="relative w-screen h-screen font-poppins">
                 <Background />
-                <LoginView onLoginSuccess={handleLoginSuccess} error={loginError} />
+                <LoginView onLoginSuccess={handleLoginSuccess} error={loginError} isLoading={isLoggingIn} />
             </main>
         );
     }

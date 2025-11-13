@@ -4,9 +4,10 @@ import { LogoIcon } from './icons/LogoIcon.tsx';
 interface LoginViewProps {
     onLoginSuccess: () => void;
     error: string | null;
+    isLoading?: boolean;
 }
 
-export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, error }) => {
+export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, error, isLoading }) => {
 
     const handleEnter = (e: React.FormEvent) => {
         e.preventDefault();
@@ -28,8 +29,16 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLoginSuccess, error }) =
                 )}
                 
                 <form onSubmit={handleEnter}>
-                    <button type="submit" className="w-full px-4 py-3 font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-300 text-lg">
-                        Entrar
+                    <button
+                        type="submit"
+                        className="w-full px-4 py-3 font-bold text-stone-900 bg-yellow-600 rounded-lg hover:bg-yellow-700 transition-colors duration-300 text-lg flex items-center justify-center disabled:opacity-75 disabled:cursor-wait"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-stone-900"></div>
+                        ) : (
+                            'Entrar'
+                        )}
                     </button>
                 </form>
             </div>
